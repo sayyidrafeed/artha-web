@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query"
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -12,11 +12,11 @@ export const queryClient = new QueryClient({
     },
     mutations: {
       retry: (failureCount: number, error: Error): boolean => {
-        if (error.message.includes('Network')) {
-          return failureCount < 2;
+        if (error.message.includes("Network")) {
+          return failureCount < 2
         }
-        return false;
+        return false
       },
     },
   },
-});
+})

@@ -8,24 +8,5 @@
   "bracketSpacing": true,
   "jsxBracketSameLine": false,
   "arrowParens": "always",
-  "endOfLine": "lf",
-  "overrides": [
-    {
-      "files": "*.json",
-      "options": {
-        "parser": "json"
-      }
-    },
-    {
-      "files": "*.css",
-      "options": {
-        "parser": "css"
-      }
-    }
-  ],
-  "ignore": [
-    "dist/",
-    "node_modules/",
-    "bun.lockb"
-  ]
+  "endOfLine": "lf"
 }
