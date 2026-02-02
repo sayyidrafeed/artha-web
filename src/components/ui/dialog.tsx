@@ -9,7 +9,7 @@ export interface DialogProps {
 
 export interface DialogContentProps
   extends React.HTMLAttributes<HTMLDivElement> {
-  onClose?: () => void;
+  onClose?: () => void
 }
 
 export interface DialogHeaderProps

@@ -3,20 +3,6 @@
     "browser": true,
     "es2022": true
   },
-  "extends": [
-    "oxlint:recommended",
-    "oxlint:typescript",
-    "oxlint:react"
-  ],
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaVersion": 2022,
-    "sourceType": "module",
-    "project": "./tsconfig.json",
-    "ecmaFeatures": {
-      "jsx": true
-    }
-  },
   "plugins": ["@typescript-eslint", "react", "react-hooks"],
   "settings": {
     "react": {

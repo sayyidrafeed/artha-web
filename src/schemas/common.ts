@@ -22,7 +22,11 @@ export const paginationMetaSchema = z.object({
 // Standard API success response
 export function createSuccessResponseSchema<T extends z.ZodType>(
   dataSchema: T,
-) {
+): z.ZodObject<{
+  success: z.ZodLiteral<true>
+  data: T
+  meta: z.ZodOptional<typeof paginationMetaSchema>
+}> {
   return z.object({
     success: z.literal(true),
     data: dataSchema,
@@ -41,9 +45,11 @@ export const errorResponseSchema = z.object({
 })
 
 // API response wrapper type helper
-export type ApiResponse<T> =
-  | { success: true; data: T; meta?: z.infer<typeof paginationMetaSchema> }
-  | { success: false; error: z.infer<typeof errorResponseSchema>['error'] };
+export type ApiResponse<T,> = {
+  success: true
+  data: T
+  meta?: z.infer<typeof paginationMetaSchema>
+} | { success: false; error: z.infer<typeof errorResponseSchema>["error"] }
 
 // Types
 export type ErrorCode = z.infer<typeof errorCodeSchema>
