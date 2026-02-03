@@ -2,22 +2,18 @@
   "name": "artha-web",
   "version": "1.0.0",
   "type": "module",
-  "engines": {
-    "node": "24.x"
-  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "oxlint . --config .oxlintrc.json",
     "lint:fix": "oxlint . --config .oxlintrc.json --fix",
-    "format": "oxfmt . || true",
-    "format:check": "oxfmt . --check || true",
+    "format": "oxfmt --write || true",
+    "format:check": "oxfmt --check || true",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run lint && npm run format:check",
-    "dev:bun": "bunx --bun vite",
-    "check:bun": "bun run typecheck && bun run lint && bun run format:check"
+    "check": "tsc --noEmit && oxlint . --config .oxlintrc.json && oxfmt --check"
   },
+  "packageManager": "bun@1.2.0",
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",
     "better-auth": "^1.4.18",
