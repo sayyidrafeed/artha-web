@@ -6,7 +6,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "bunx --bun vite",
+    "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "oxlint . --config .oxlintrc.json",
@@ -14,10 +14,9 @@
     "format": "oxfmt . || true",
     "format:check": "oxfmt . --check || true",
     "typecheck": "tsc --noEmit",
-    "check": "bun run typecheck && bun run lint && bun run format:check",
-    "ci:install": "npm ci",
-    "ci:build": "npm run build",
-    "ci:test": "bun test"
+    "check": "npm run typecheck && npm run lint && npm run format:check",
+    "dev:bun": "bunx --bun vite",
+    "check:bun": "bun run typecheck && bun run lint && bun run format:check"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",
