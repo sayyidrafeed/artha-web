@@ -43,7 +43,10 @@ export function useSignIn(): UseSignInResult {
 
   const { mutate, isPending, error } = useMutation({
     mutationFn: async (provider: "github" | "google"): Promise<void> => {
-      await authClient.signIn.social({ provider })
+      await authClient.signIn.social({
+        provider,
+        callbackURL: window.location.origin,
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.session })
