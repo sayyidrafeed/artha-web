@@ -16,64 +16,12 @@ import {
   useUpdateTransaction,
   useDeleteTransaction,
 } from "../hooks/use-transactions"
+import { useCategories } from "../hooks/use-categories"
 import { TransactionList } from "../components/transaction-list"
 import { TransactionForm } from "../components/transaction-form"
 import { LogoutButton } from "@/modules/auth"
 import { useSession } from "@/modules/auth/hooks/use-auth"
 import type { Transaction, CreateTransactionInput } from "@/schemas/transaction"
-import type { Category } from "@/schemas/category"
-
-// Mock categories - in a real app, these would be fetched from the API
-const mockCategories: Category[] = [
-  {
-    id: "1",
-    name: "Salary",
-    type: "income",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    name: "Freelance",
-    type: "income",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    name: "Food & Dining",
-    type: "expense",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    name: "Transportation",
-    type: "expense",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "5",
-    name: "Entertainment",
-    type: "expense",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "6",
-    name: "Shopping",
-    type: "expense",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "7",
-    name: "Bills & Utilities",
-    type: "expense",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "8",
-    name: "Healthcare",
-    type: "expense",
-    createdAt: new Date().toISOString(),
-  },
-]
 
 export function TransactionsPage(): JSX.Element {
   const navigate = useNavigate()
@@ -84,6 +32,7 @@ export function TransactionsPage(): JSX.Element {
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null)
 
+  const { data: categories } = useCategories()
   const { data: transactionsData, isLoading } = useTransactions({
     page: 1,
     limit: 50,
@@ -241,7 +190,7 @@ export function TransactionsPage(): JSX.Element {
           </DialogHeader>
           <TransactionForm
             onSubmit={editingTransaction ? handleUpdate : handleCreate}
-            categories={mockCategories}
+            categories={categories}
             defaultValues={
               editingTransaction
                 ? {
