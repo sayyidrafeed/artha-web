@@ -9,6 +9,7 @@ export interface TransactionFormProps {
   defaultValues?: Partial<CreateTransactionInput>
   isSubmitting?: boolean
   submitLabel?: string
+  error?: Error | null
 }
 
 export function TransactionForm({
@@ -17,6 +18,7 @@ export function TransactionForm({
   defaultValues,
   isSubmitting = false,
   submitLabel = "Save Transaction",
+  error = null,
 }: TransactionFormProps): JSX.Element {
   const form = useForm<CreateTransactionInput>({
     defaultValues: {
@@ -121,6 +123,12 @@ export function TransactionForm({
           </p>
         )}
       </div>
+
+      {error && (
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          {error.message}
+        </div>
+      )}
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Saving..." : submitLabel}

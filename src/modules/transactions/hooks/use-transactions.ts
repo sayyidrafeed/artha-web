@@ -43,6 +43,7 @@ export function useTransactions(
 
 interface UseCreateTransactionResult {
   mutate: (data: CreateTransactionInput) => void
+  mutateAsync: (data: CreateTransactionInput) => Promise<Transaction>
   isPending: boolean
   error: Error | null
 }
@@ -50,7 +51,7 @@ interface UseCreateTransactionResult {
 export function useCreateTransaction(): UseCreateTransactionResult {
   const queryClient = useQueryClient()
 
-  const { mutate, isPending, error } = useMutation({
+  const { mutate, mutateAsync, isPending, error } = useMutation({
     mutationFn: async (data: CreateTransactionInput) =>
       api.post<Transaction>("/transactions", data),
     onSuccess: () => {
@@ -61,6 +62,7 @@ export function useCreateTransaction(): UseCreateTransactionResult {
 
   return {
     mutate,
+    mutateAsync,
     isPending,
     error: error ?? null,
   }
@@ -68,6 +70,10 @@ export function useCreateTransaction(): UseCreateTransactionResult {
 
 interface UseUpdateTransactionResult {
   mutate: (id: string, data: UpdateTransactionInput) => void
+  mutateAsync: (params: {
+    id: string
+    data: UpdateTransactionInput
+  }) => Promise<Transaction>
   isPending: boolean
   error: Error | null
 }
@@ -75,7 +81,7 @@ interface UseUpdateTransactionResult {
 export function useUpdateTransaction(): UseUpdateTransactionResult {
   const queryClient = useQueryClient()
 
-  const { mutate, isPending, error } = useMutation({
+  const { mutate, mutateAsync, isPending, error } = useMutation({
     mutationFn: async ({
       id,
       data,
@@ -91,6 +97,7 @@ export function useUpdateTransaction(): UseUpdateTransactionResult {
 
   return {
     mutate: (id: string, data: UpdateTransactionInput) => mutate({ id, data }),
+    mutateAsync,
     isPending,
     error: error ?? null,
   }

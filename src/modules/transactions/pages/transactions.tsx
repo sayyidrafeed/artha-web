@@ -104,9 +104,13 @@ export function TransactionsPage(): JSX.Element {
           .includes(searchTerm.toLowerCase()),
     ) ?? []
 
-  const handleCreate = (data: CreateTransactionInput): void => {
-    createMutation.mutate(data)
-    setIsModalOpen(false)
+  const handleCreate = async (data: CreateTransactionInput): Promise<void> => {
+    try {
+      await createMutation.mutateAsync(data)
+      setIsModalOpen(false)
+    } catch (err) {
+      console.error("Failed to create transaction:", err)
+    }
   }
 
   const handleEdit = (transaction: Transaction): void => {
@@ -114,11 +118,15 @@ export function TransactionsPage(): JSX.Element {
     setIsModalOpen(true)
   }
 
-  const handleUpdate = (data: CreateTransactionInput): void => {
+  const handleUpdate = async (data: CreateTransactionInput): Promise<void> => {
     if (editingTransaction) {
-      updateMutation.mutate(editingTransaction.id, data)
-      setIsModalOpen(false)
-      setEditingTransaction(null)
+      try {
+        await updateMutation.mutateAsync({ id: editingTransaction.id, data })
+        setIsModalOpen(false)
+        setEditingTransaction(null)
+      } catch (err) {
+        console.error("Failed to update transaction:", err)
+      }
     }
   }
 
@@ -237,17 +245,18 @@ export function TransactionsPage(): JSX.Element {
             defaultValues={
               editingTransaction
                 ? {
-                    categoryId: editingTransaction.categoryId,
-                    amount: editingTransaction.amountCents / 100,
-                    description: editingTransaction.description,
-                    transactionDate: editingTransaction.transactionDate,
-                  }
+                  categoryId: editingTransaction.categoryId,
+                  amount: editingTransaction.amountCents / 100,
+                  description: editingTransaction.description,
+                  transactionDate: editingTransaction.transactionDate,
+                }
                 : undefined
             }
             isSubmitting={createMutation.isPending || updateMutation.isPending}
             submitLabel={
               editingTransaction ? "Update Transaction" : "Create Transaction"
             }
+            error={createMutation.error || updateMutation.error}
           />
         </DialogContent>
       </Dialog>
