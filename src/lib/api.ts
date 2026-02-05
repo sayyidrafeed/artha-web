@@ -35,7 +35,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
     throw new Error(`API error: ${response.status}`)
   }
 
-  return data
+  return data?.success ? data.data : data
 }
 
 export const api = {
