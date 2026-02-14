@@ -1,15 +1,16 @@
-import { useForm } from "react-hook-form"
-import { Button, Input, Label, Select, SelectOption } from "@/components/ui"
-import type { CreateTransactionInput } from "@/schemas/transaction"
-import type { Category } from "@/schemas/category"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Input, Label, Select, SelectOption } from "@/components/ui";
+import { createTransactionSchema, type CreateTransactionInput } from "@/schemas/transaction";
+import type { Category } from "@/schemas/category";
 
 export interface TransactionFormProps {
-  onSubmit: (data: CreateTransactionInput) => void
-  categories: Category[]
-  defaultValues?: Partial<CreateTransactionInput>
-  isSubmitting?: boolean
-  submitLabel?: string
-  error?: Error | null
+  onSubmit: (data: CreateTransactionInput) => void;
+  categories: Category[];
+  defaultValues?: Partial<CreateTransactionInput>;
+  isSubmitting?: boolean;
+  submitLabel?: string;
+  error?: Error | null;
 }
 
 export function TransactionForm({
@@ -21,6 +22,7 @@ export function TransactionForm({
   error = null,
 }: TransactionFormProps): JSX.Element {
   const form = useForm<CreateTransactionInput>({
+    resolver: zodResolver(createTransactionSchema),
     defaultValues: {
       categoryId: "",
       amount: 0,
@@ -28,13 +30,13 @@ export function TransactionForm({
       transactionDate: new Date().toISOString().split("T")[0],
       ...defaultValues,
     },
-  })
+  });
 
   const handleSubmit = (data: CreateTransactionInput): void => {
-    onSubmit(data)
-  }
+    onSubmit(data);
+  };
 
-  const handleSubmitForm = form.handleSubmit(handleSubmit)
+  const handleSubmitForm = form.handleSubmit(handleSubmit);
 
   return (
     <form onSubmit={handleSubmitForm} className="space-y-4">
@@ -53,9 +55,7 @@ export function TransactionForm({
           ))}
         </Select>
         {form.formState.errors.categoryId && (
-          <p className="text-sm text-destructive">
-            {form.formState.errors.categoryId.message}
-          </p>
+          <p className="text-sm text-destructive">{form.formState.errors.categoryId.message}</p>
         )}
       </div>
 
@@ -75,9 +75,7 @@ export function TransactionForm({
           disabled={isSubmitting}
         />
         {form.formState.errors.amount && (
-          <p className="text-sm text-destructive">
-            {form.formState.errors.amount.message}
-          </p>
+          <p className="text-sm text-destructive">{form.formState.errors.amount.message}</p>
         )}
       </div>
 
@@ -97,9 +95,7 @@ export function TransactionForm({
           disabled={isSubmitting}
         />
         {form.formState.errors.description && (
-          <p className="text-sm text-destructive">
-            {form.formState.errors.description.message}
-          </p>
+          <p className="text-sm text-destructive">{form.formState.errors.description.message}</p>
         )}
       </div>
 
@@ -134,5 +130,5 @@ export function TransactionForm({
         {isSubmitting ? "Saving..." : submitLabel}
       </Button>
     </form>
-  )
+  );
 }

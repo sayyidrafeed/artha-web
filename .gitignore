@@ -3,6 +3,10 @@ node_modules/
 
 # Build output
 dist/
+.next/
+
+# TypeScript cache
+*.tsbuildinfo
 
 # Environment files
 .env

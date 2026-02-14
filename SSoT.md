@@ -1,5 +1,5 @@
 > ⚠️ **MANDATORY DIRECTIVE FOR AI ASSISTANTS**
-> 
+>
 > **ALWAYS CHECK Context7 MCP server to get the latest documentation for libraries** before implementing any code changes. This includes but is not limited to: React, Better Auth, TanStack Query, Zod, React Hook Form, and any other dependencies.
 
 ---
@@ -7,7 +7,7 @@
 # Artha Frontend - Single Source of Truth
 
 **Repository**: artha-web  
-**Last Updated**: 2024-01-15  
+**Last Updated**: 2026-02-14  
 **Version**: 1.0.0
 
 ## Domain Models
@@ -21,14 +21,15 @@ interface User {
   name: string;
   image?: string;
   emailVerified: boolean;
-  createdAt: string;  // ISO 8601
-  updatedAt: string;  // ISO 8601
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
 }
 ```
 
 **Constraints:**
+
 - Only ONE user exists (owner-only system)
-- Email MUST match `VITE_OWNER_EMAIL`
+- Email MUST match `NEXT_PUBLIC_OWNER_EMAIL`
 - Created via OAuth (GitHub or Google)
 
 ### Session (Better Auth)
@@ -38,11 +39,11 @@ interface Session {
   id: string;
   token: string;
   userId: string;
-  expiresAt: string;  // ISO 8601
+  expiresAt: string; // ISO 8601
   ipAddress?: string;
   userAgent?: string;
-  createdAt: string;  // ISO 8601
-  updatedAt: string;  // ISO 8601
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
 }
 
 interface SessionData {
@@ -52,6 +53,7 @@ interface SessionData {
 ```
 
 **Constraints:**
+
 - Session cookie: httpOnly, Secure, SameSite=Strict
 - Expires in 7 days
 - Single active session
@@ -63,16 +65,17 @@ interface Transaction {
   id: string;
   categoryId: string;
   categoryName: string;
-  categoryType: 'income' | 'expense';
-  amountCents: number;  // Positive integer
+  categoryType: "income" | "expense";
+  amountCents: number; // Positive integer
   description: string;
-  transactionDate: string;  // YYYY-MM-DD
-  createdAt: string;  // ISO 8601
-  updatedAt: string;  // ISO 8601
+  transactionDate: string; // YYYY-MM-DD
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
 }
 ```
 
 **Constraints:**
+
 - `amountCents` is always positive (type determined by category)
 - `transactionDate` format: YYYY-MM-DD
 - No `userId` (owner-only system)
@@ -83,12 +86,13 @@ interface Transaction {
 interface Category {
   id: string;
   name: string;
-  type: 'income' | 'expense';
-  createdAt: string;  // ISO 8601
+  type: "income" | "expense";
+  createdAt: string; // ISO 8601
 }
 ```
 
 **Constraints:**
+
 - Name unique per type
 - Cannot delete if transactions exist
 
@@ -110,7 +114,7 @@ interface MonthlySummary {
 interface CategoryAggregation {
   categoryId: string;
   categoryName: string;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   totalCents: number;
   transactionCount: number;
 }
@@ -179,12 +183,14 @@ interface DashboardByCategory {
 ### No Registration Flow
 
 **PROHIBITED UI:**
+
 - No registration form
 - No "Sign Up" link
 - No email/password registration
 - No invite system
 
 **ALLOWED UI:**
+
 - OAuth buttons only
 - Login page with owner-only message
 
@@ -194,21 +200,20 @@ interface DashboardByCategory {
 
 ```typescript
 // src/lib/query-client.ts
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,  // 5 minutes
-      gcTime: 10 * 60 * 1000,    // 10 minutes
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
       refetchOnWindowFocus: false,
       retry: 2,
-      retryDelay: (attemptIndex: number): number =>
-        Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex: number): number => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
     mutations: {
       retry: (failureCount: number, error: Error): boolean => {
-        if (error.message.includes('Network')) {
+        if (error.message.includes("Network")) {
           return failureCount < 2;
         }
         return false;
@@ -224,24 +229,24 @@ export const queryClient = new QueryClient({
 // src/lib/query-keys.ts
 export const queryKeys = {
   auth: {
-    session: ['auth', 'session'] as const,
+    session: ["auth", "session"] as const,
   },
   transactions: {
-    all: ['transactions'] as const,
+    all: ["transactions"] as const,
     list: (filters: Record<string, unknown>): readonly string[] =>
-      [...queryKeys.transactions.all, 'list', JSON.stringify(filters)] as const,
+      [...queryKeys.transactions.all, "list", JSON.stringify(filters)] as const,
     detail: (id: string): readonly string[] =>
-      [...queryKeys.transactions.all, 'detail', id] as const,
+      [...queryKeys.transactions.all, "detail", id] as const,
   },
   dashboard: {
     summary: (year: number, month?: number): readonly string[] =>
-      ['dashboard', 'summary', String(year), month ? String(month) : 'all'] as const,
+      ["dashboard", "summary", String(year), month ? String(month) : "all"] as const,
     byCategory: (year: number, month?: number): readonly string[] =>
-      ['dashboard', 'byCategory', String(year), month ? String(month) : 'all'] as const,
+      ["dashboard", "byCategory", String(year), month ? String(month) : "all"] as const,
   },
   categories: {
-    all: ['categories'] as const,
-    list: (): readonly string[] => [...queryKeys.categories.all, 'list'] as const,
+    all: ["categories"] as const,
+    list: (): readonly string[] => [...queryKeys.categories.all, "list"] as const,
   },
 };
 ```
@@ -250,26 +255,69 @@ export const queryKeys = {
 
 ```typescript
 // src/modules/auth/hooks/use-auth.ts
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { authClient } from "@/lib/auth-client";
+import { queryKeys } from "@/lib/query-keys";
+import type { User, Session } from "@/schemas/auth";
+import { useRouter } from "next/navigation";
+
+interface SessionData {
+  session: Session;
+  user: User;
+}
+
+function createMockSession(): SessionData {
+  const OWNER_EMAIL = process.env.NEXT_PUBLIC_OWNER_EMAIL ?? "";
+  const now = new Date();
+  const futureDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  return {
+    session: {
+      id: "dev-session-id",
+      token: "dev-mock-token",
+      userId: "dev-user-id",
+      expiresAt: futureDate.toISOString(),
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+    },
+    user: {
+      id: "dev-user-id",
+      email: OWNER_EMAIL,
+      name: "Developer",
+      image: undefined,
+      emailVerified: true,
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+    },
+  };
+}
+import type { User, Session } from "@/schemas/auth";
 
 // Get current session
 export function useSession() {
+  const DEV_BYPASS = process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true";
+
   return useQuery<SessionData | null>({
     queryKey: queryKeys.auth.session,
     queryFn: async (): Promise<SessionData | null> => {
+      if (DEV_BYPASS) {
+        // Return mock session for development
+        return createMockSession();
+      }
       const { data } = await authClient.getSession();
       return data as SessionData | null;
     },
     retry: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: DEV_BYPASS ? Infinity : 5 * 60 * 1000,
   });
 }
 
 // Sign in with OAuth
 export function useSignIn() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (provider: 'github' | 'google'): Promise<void> => {
+    mutationFn: async (provider: "github" | "google"): Promise<void> => {
       await authClient.signIn.social({ provider });
     },
     onSuccess: () => {
@@ -281,14 +329,15 @@ export function useSignIn() {
 // Sign out
 export function useSignOut() {
   const queryClient = useQueryClient();
-  
+  const router = useRouter();
+
   return useMutation({
     mutationFn: async (): Promise<void> => {
       await authClient.signOut();
     },
     onSuccess: () => {
       queryClient.clear();
-      window.location.href = '/login';
+      router.push("/login");
     },
   });
 }
@@ -301,7 +350,7 @@ export function useSignOut() {
 export function useTransactions(filters: TransactionFilter) {
   return useQuery<ApiResponse<TransactionsResponse>>({
     queryKey: queryKeys.transactions.list(filters),
-    queryFn: async () => api.get('/transactions', { params: filters }),
+    queryFn: async () => api.get("/transactions", { params: filters }),
     staleTime: 30 * 1000,
   });
 }
@@ -310,7 +359,7 @@ export function useTransactions(filters: TransactionFilter) {
 export function useDashboardSummary(year: number, month?: number) {
   return useQuery<ApiResponse<MonthlySummary>>({
     queryKey: queryKeys.dashboard.summary(year, month),
-    queryFn: async () => api.get('/dashboard/summary', { params: { year, month } }),
+    queryFn: async () => api.get("/dashboard/summary", { params: { year, month } }),
     staleTime: 60 * 1000,
   });
 }
@@ -321,14 +370,13 @@ export function useDashboardSummary(year: number, month?: number) {
 ```typescript
 export function useCreateTransaction() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async (data: CreateTransactionInput) => 
-      api.post('/transactions', data),
+    mutationFn: async (data: CreateTransactionInput) => api.post("/transactions", data),
     onSuccess: () => {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 }
@@ -362,15 +410,16 @@ App
 ### Component Patterns
 
 #### Page Components
+
 ```typescript
 // src/modules/dashboard/pages/dashboard.tsx
 export function DashboardPage(): JSX.Element {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  
+
   const { data: summary } = useDashboardSummary(selectedYear, selectedMonth);
   const { data: byCategory } = useDashboardByCategory(selectedYear, selectedMonth);
-  
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -382,6 +431,7 @@ export function DashboardPage(): JSX.Element {
 ```
 
 #### Presentational Components
+
 ```typescript
 // src/modules/dashboard/components/summary-cards.tsx
 interface SummaryCardsProps {
@@ -390,7 +440,7 @@ interface SummaryCardsProps {
 
 export function SummaryCards({ data }: SummaryCardsProps): JSX.Element {
   if (!data) return <SummaryCardsSkeleton />;
-  
+
   return (
     <div className="grid grid-cols-3 gap-4">
       <IncomeCard amount={data.incomeCents} />
@@ -402,6 +452,7 @@ export function SummaryCards({ data }: SummaryCardsProps): JSX.Element {
 ```
 
 #### Form Components
+
 ```typescript
 // src/modules/transactions/components/transaction-form.tsx
 interface TransactionFormProps {
@@ -409,9 +460,9 @@ interface TransactionFormProps {
   defaultValues?: Partial<CreateTransactionInput>;
 }
 
-export function TransactionForm({ 
-  onSubmit, 
-  defaultValues 
+export function TransactionForm({
+  onSubmit,
+  defaultValues
 }: TransactionFormProps): JSX.Element {
   const form = useForm<CreateTransactionInput>({
     resolver: zodResolver(createTransactionSchema),
@@ -423,7 +474,7 @@ export function TransactionForm({
       ...defaultValues,
     },
   });
-  
+
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
       {/* Form fields */}
@@ -442,7 +493,8 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps): JSX.Element {
   const { data: session, isLoading } = useSession();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
 
   if (isLoading) {
     return (
@@ -453,7 +505,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps): JSX.Element {
   }
 
   if (!session) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    router.push(`/login?from=${encodeURIComponent(pathname)}`);
+    return null;
   }
 
   return <>{children}</>;
@@ -466,56 +519,120 @@ export function ProtectedRoute({ children }: ProtectedRouteProps): JSX.Element {
 
 ```typescript
 // src/lib/api.ts
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
-export const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true,  // Required for session cookies
-});
-
-// Request interceptor
-api.interceptors.request.use(
-  (config) => {
-    console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor
-api.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    const message = error.response?.data?.error?.message || 'An error occurred';
-    const code = error.response?.data?.error?.code || 'UNKNOWN_ERROR';
-    
-    // Handle auth errors
-    if (error.response?.status === 401) {
-      window.location.href = '/login';
-    }
-    
-    if (error.response?.status === 403) {
-      window.location.href = '/unauthorized';
-    }
-    
-    return Promise.reject({ message, code, status: error.response?.status });
+function getAPIURL(): string {
+  if (typeof window !== "undefined") {
+    return window.location.origin + "/api";
   }
-);
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+}
+
+const API_URL = getAPIURL();
+
+export interface ApiErrorDetail {
+  code: string;
+  message: string;
+  path?: (string | number)[];
+}
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public code: string,
+    message: string,
+    public details?: ApiErrorDetail[],
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+async function handleResponse<T>(response: Response): Promise<T> {
+  const contentType = response.headers.get("Content-Type");
+  const isJson = contentType?.includes("application/json");
+  const data = isJson ? await response.json() : null;
+
+  if (!response.ok) {
+    if (data?.success === false && data?.error) {
+      throw new ApiError(response.status, data.error.code, data.error.message, data.error.details);
+    }
+    throw new Error(`API error: ${response.status}`);
+  }
+
+  return data?.success ? data.data : data;
+}
+
+export const api = {
+  baseUrl: API_URL,
+
+  async get<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
+    const url = new URL(`${this.baseUrl}${endpoint}`);
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return handleResponse<T>(response);
+  },
+
+  async post<T>(endpoint: string, data: unknown): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    return handleResponse<T>(response);
+  },
+
+  async put<T>(endpoint: string, data: unknown): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    return handleResponse<T>(response);
+  },
+
+  async delete<T>(endpoint: string): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return handleResponse<T>(response);
+  },
+};
 ```
 
 ### Better Auth Client
 
 ```typescript
 // src/lib/auth-client.ts
-import { createAuthClient } from 'better-auth/react';
+import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL: import.meta.env.VITE_BETTER_AUTH_URL,
+  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
 });
 
 export type AuthClient = typeof authClient;
@@ -557,9 +674,9 @@ type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
 ```typescript
 // src/lib/currency.ts
 
-export function formatCurrency(cents: number, currency = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
+export function formatCurrency(cents: number, currency = "USD"): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency,
   }).format(cents / 100);
 }
@@ -589,21 +706,16 @@ const amountCents = dollarsToCents(25.99); // 2599
 
 ```typescript
 // src/schemas/transaction.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const createTransactionSchema = z.object({
-  categoryId: z.string().uuid('Invalid category ID'),
-  amount: z
-    .number()
-    .positive('Amount must be positive')
-    .max(999999999.99, 'Amount is too large'),
+  categoryId: z.string().uuid("Invalid category ID"),
+  amount: z.number().positive("Amount must be positive").max(999999999.99, "Amount is too large"),
   description: z
     .string()
-    .min(1, 'Description is required')
-    .max(500, 'Description must be less than 500 characters'),
-  transactionDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+    .min(1, "Description is required")
+    .max(500, "Description must be less than 500 characters"),
+  transactionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
 });
 
 export const updateTransactionSchema = createTransactionSchema.partial();
@@ -615,58 +727,66 @@ export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>;
 ## Environment Variables
 
 ### Required
+
 ```bash
-VITE_API_URL=https://artha.sayyidrafee.com/api
-VITE_BETTER_AUTH_URL=https://artha.sayyidrafee.com/api
-VITE_OWNER_EMAIL=owner@sayyidrafee.com
+NEXT_PUBLIC_API_URL=https://artha.sayyidrafee.com/api
+NEXT_PUBLIC_BETTER_AUTH_URL=https://artha.sayyidrafee.com/api
+NEXT_PUBLIC_OWNER_EMAIL=owner@sayyidrafee.com
+NEXT_PUBLIC_DEV_BYPASS_AUTH=false
 ```
 
 ### Type Definitions
-```typescript
-// src/vite-env.d.ts
-/// <reference types="vite/client" />
 
-interface ImportMetaEnv {
-  readonly VITE_API_URL: string;
-  readonly VITE_BETTER_AUTH_URL: string;
-  readonly VITE_OWNER_EMAIL: string;
+```typescript
+// src/types/next-env.d.ts
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+
+interface NextPublicEnv {
+  readonly NEXT_PUBLIC_API_URL: string;
+  readonly NEXT_PUBLIC_BETTER_AUTH_URL: string;
+  readonly NEXT_PUBLIC_OWNER_EMAIL: string;
+  readonly NEXT_PUBLIC_DEV_BYPASS_AUTH: string;
 }
 
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv extends NextPublicEnv {}
+  }
 }
 ```
 
 ## Routing Structure
 
-| Path | Component | Auth Required |
-|------|-----------|---------------|
-| `/login` | LoginPage | No |
-| `/` | DashboardPage | Yes |
-| `/transactions` | TransactionsPage | Yes |
-| `/categories` | CategoriesPage | Yes |
-| `/unauthorized` | UnauthorizedPage | No |
+| Path            | Component        | Auth Required |
+| --------------- | ---------------- | ------------- |
+| `/login`        | LoginPage        | No            |
+| `/`             | DashboardPage    | Yes           |
+| `/transactions` | TransactionsPage | Yes           |
+| `/categories`   | CategoriesPage   | Yes           |
+| `/unauthorized` | UnauthorizedPage | No            |
 
 ## File Locations
 
-| Purpose | Path |
-|---------|------|
-| Auth client | `src/lib/auth-client.ts` |
-| API client | `src/lib/api.ts` |
-| Query client | `src/lib/query-client.ts` |
-| Query keys | `src/lib/query-keys.ts` |
-| Currency utils | `src/lib/currency.ts` |
-| Auth hooks | `src/modules/auth/hooks/use-auth.ts` |
-| Login button | `src/modules/auth/components/login-button.tsx` |
-| Login page | `src/modules/auth/pages/login.tsx` |
-| Protected route | `src/components/protected-route.tsx` |
-| Transaction hooks | `src/modules/transactions/hooks/use-transactions.ts` |
-| Transaction schemas | `src/schemas/transaction.ts` |
-| Shared schemas | `src/schemas/*.ts` |
+| Purpose             | Path                                                 |
+| ------------------- | ---------------------------------------------------- |
+| Auth client         | `src/lib/auth-client.ts`                             |
+| API client          | `src/lib/api.ts`                                     |
+| Query client        | `src/lib/query-client.ts`                            |
+| Query keys          | `src/lib/query-keys.ts`                              |
+| Currency utils      | `src/lib/currency.ts`                                |
+| Auth hooks          | `src/modules/auth/hooks/use-auth.ts`                 |
+| Login button        | `src/modules/auth/components/login-button.tsx`       |
+| Login page          | `src/modules/auth/pages/login.tsx`                   |
+| Protected route     | `src/components/protected-route.tsx`                 |
+| Transaction hooks   | `src/modules/transactions/hooks/use-transactions.ts` |
+| Transaction schemas | `src/schemas/transaction.ts`                         |
+| Shared schemas      | `src/schemas/*.ts`                                   |
 
 ## Error Handling
 
 ### API Errors
+
 ```typescript
 const { error } = useQuery({
   queryKey: queryKeys.transactions.list(filters),
@@ -679,6 +799,7 @@ if (error) {
 ```
 
 ### Form Errors
+
 ```typescript
 const form = useForm<CreateTransactionInput>({
   resolver: zodResolver(createTransactionSchema),
@@ -690,6 +811,7 @@ const form = useForm<CreateTransactionInput>({
 ## Default Categories
 
 ### Income
+
 1. Salary
 2. Freelance
 3. Investment
@@ -697,6 +819,7 @@ const form = useForm<CreateTransactionInput>({
 5. Other Income
 
 ### Expense
+
 1. Food & Dining
 2. Transportation
 3. Utilities

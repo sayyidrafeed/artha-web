@@ -1,8 +1,19 @@
-import { createAuthClient } from "better-auth/react"
+import { createAuthClient } from "better-auth/react";
+
+function getBaseURL(): string {
+  if (typeof window !== "undefined") {
+    return window.location.origin + "/api/auth";
+  }
+  return (
+    (process.env.NEXT_PUBLIC_BETTER_AUTH_URL as string) ||
+    (import.meta.env as unknown as { NEXT_PUBLIC_BETTER_AUTH_URL?: string })
+      .NEXT_PUBLIC_BETTER_AUTH_URL ||
+    ""
+  );
+}
 
 export const authClient = createAuthClient({
-  baseURL: import.meta.env.VITE_BETTER_AUTH_URL,
-})
+  baseURL: getBaseURL(),
+});
 
-// Export typed auth client
-export type AuthClient = typeof authClient
+export type AuthClient = typeof authClient;

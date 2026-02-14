@@ -1,11 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui"
-import { Badge } from "@/components/ui"
-import { Skeleton } from "@/components/ui/skeleton"
-import { formatCurrency } from "@/lib/currency"
-import type {
-  DashboardByCategory,
-  CategoryAggregation,
-} from "@/schemas/dashboard"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
+import { Badge } from "@/components/ui";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/currency";
+import type { DashboardByCategory, CategoryAggregation } from "@/schemas/dashboard";
 
 const COLORS = [
   "#3b82f6", // blue
@@ -16,27 +13,24 @@ const COLORS = [
   "#ec4899", // pink
   "#06b6d4", // cyan
   "#84cc16", // lime
-]
+];
 
 export interface CategoryBreakdownProps {
-  data?: DashboardByCategory
-  isLoading?: boolean
+  data?: DashboardByCategory;
+  isLoading?: boolean;
 }
 
-export function CategoryBreakdown({
-  data,
-  isLoading,
-}: CategoryBreakdownProps): JSX.Element {
+export function CategoryBreakdown({ data, isLoading }: CategoryBreakdownProps): JSX.Element {
   if (isLoading) {
-    return <CategoryBreakdownSkeleton />
+    return <CategoryBreakdownSkeleton />;
   }
 
   if (!data) {
-    return <div className="text-muted-foreground">No data available</div>
+    return <div className="text-muted-foreground">No data available</div>;
   }
 
-  const hasIncome = data.income.length > 0
-  const hasExpense = data.expense.length > 0
+  const hasIncome = data.income.length > 0;
+  const hasExpense = data.expense.length > 0;
 
   if (!hasIncome && !hasExpense) {
     return (
@@ -45,45 +39,32 @@ export function CategoryBreakdown({
           <CardTitle>Category Breakdown</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No transactions recorded for this period.
-          </p>
+          <p className="text-sm text-muted-foreground">No transactions recorded for this period.</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {hasIncome && (
-        <CategorySection
-          title="Income by Category"
-          type="income"
-          categories={data.income}
-        />
+        <CategorySection title="Income by Category" type="income" categories={data.income} />
       )}
       {hasExpense && (
-        <CategorySection
-          title="Expenses by Category"
-          type="expense"
-          categories={data.expense}
-        />
+        <CategorySection title="Expenses by Category" type="expense" categories={data.expense} />
       )}
     </div>
-  )
+  );
 }
 
 export interface CategorySectionProps {
-  title: string
-  type: "income" | "expense"
-  categories: CategoryAggregation[]
+  title: string;
+  type: "income" | "expense";
+  categories: CategoryAggregation[];
 }
 
-function CategorySection({
-  title,
-  categories,
-}: CategorySectionProps): JSX.Element {
-  const total = categories.reduce((sum, cat) => sum + cat.totalCents, 0)
+function CategorySection({ title, categories }: CategorySectionProps): JSX.Element {
+  const total = categories.reduce((sum, cat) => sum + cat.totalCents, 0);
 
   return (
     <Card>
@@ -105,32 +86,23 @@ function CategorySection({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export interface CategoryItemProps {
-  name: string
-  amount: number
-  count: number
-  percentage: number
-  color: string
+  name: string;
+  amount: number;
+  count: number;
+  percentage: number;
+  color: string;
 }
 
-function CategoryItem({
-  name,
-  amount,
-  count,
-  percentage,
-  color,
-}: CategoryItemProps): JSX.Element {
+function CategoryItem({ name, amount, count, percentage, color }: CategoryItemProps): JSX.Element {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div
-            className="h-3 w-3 rounded-full"
-            style={{ backgroundColor: color }}
-          />
+          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
           <div>
             <div className="font-medium">{name}</div>
             <div className="text-xs text-muted-foreground">
@@ -155,7 +127,7 @@ function CategoryItem({
         />
       </div>
     </div>
-  )
+  );
 }
 
 export function CategoryBreakdownSkeleton(): JSX.Element {
@@ -191,5 +163,5 @@ export function CategoryBreakdownSkeleton(): JSX.Element {
         </Card>
       ))}
     </div>
-  )
+  );
 }

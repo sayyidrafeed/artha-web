@@ -1,43 +1,43 @@
-import { Github, Chrome } from "lucide-react"
-import { Button } from "@/components/ui"
-import { useSignIn } from "../hooks/use-auth"
-import type { OAuthProvider } from "@/schemas/auth"
+import { Github, Chrome, AlertCircle } from "lucide-react";
+import { Button, Alert, AlertDescription } from "@/components/ui";
+import { useSignIn } from "../hooks/use-auth";
+import type { OAuthProvider } from "@/schemas/auth";
 
 export interface LoginButtonProps {
-  provider: OAuthProvider
-  className?: string
+  provider: OAuthProvider;
+  className?: string;
 }
 
-export function LoginButton({
-  provider,
-  className,
-}: LoginButtonProps): JSX.Element {
-  const { mutate: signIn, isPending } = useSignIn()
+export function LoginButton({ provider, className }: LoginButtonProps): JSX.Element {
+  const { mutate: signIn, isPending, error } = useSignIn();
 
   const handleClick = (): void => {
-    signIn(provider)
-  }
+    signIn(provider);
+  };
 
   const icon =
-    provider === "github" ? (
-      <Github className="h-4 w-4" />
-    ) : (
-      <Chrome className="h-4 w-4" />
-    )
+    provider === "github" ? <Github className="h-4 w-4" /> : <Chrome className="h-4 w-4" />;
 
-  const label =
-    provider === "github" ? "Sign in with GitHub" : "Sign in with Google"
+  const label = provider === "github" ? "Sign in with GitHub" : "Sign in with Google";
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      className={className}
-      onClick={handleClick}
-      disabled={isPending}
-    >
-      {icon}
-      <span>{label}</span>
-    </Button>
-  )
+    <div className="space-y-2">
+      <Button
+        type="button"
+        variant="outline"
+        className={className}
+        onClick={handleClick}
+        disabled={isPending}
+      >
+        {icon}
+        <span>{label}</span>
+      </Button>
+      {error && (
+        <Alert variant="destructive" className="py-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-xs">{error.message}</AlertDescription>
+        </Alert>
+      )}
+    </div>
+  );
 }

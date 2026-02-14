@@ -1,19 +1,16 @@
-import { cn } from "@/lib/cn"
+import { cn } from "@/lib/cn";
 
 export interface LoadingSpinnerProps {
-  className?: string
-  size?: "sm" | "md" | "lg"
+  className?: string;
+  size?: "sm" | "md" | "lg";
 }
 
-export function LoadingSpinner({
-  className,
-  size = "md",
-}: LoadingSpinnerProps): JSX.Element {
+export function LoadingSpinner({ className, size = "md" }: LoadingSpinnerProps): JSX.Element {
   const sizeClasses = {
     sm: "h-4 w-4 border-2",
     md: "h-8 w-8 border-3",
     lg: "h-12 w-12 border-4",
-  }
+  };
 
   return (
     <div
@@ -27,5 +24,5 @@ export function LoadingSpinner({
     >
       <span className="sr-only">Loading...</span>
     </div>
-  )
+  );
 }
