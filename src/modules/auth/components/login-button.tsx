@@ -1,6 +1,6 @@
 import { Github, Chrome, AlertCircle } from "lucide-react";
 import { Button, Alert, AlertDescription } from "@/components/ui";
-import { useSignIn } from "../hooks/use-auth";
+import { useSignIn } from "../hooks/useAuth";
 import type { OAuthProvider } from "@/schemas/auth";
 
 export interface LoginButtonProps {

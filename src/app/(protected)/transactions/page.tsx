@@ -9,23 +9,25 @@ import {
   Card,
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   Alert,
   AlertDescription,
 } from "@/components/ui";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   useTransactions,
   useCreateTransaction,
   useUpdateTransaction,
   useDeleteTransaction,
-} from "@/modules/transactions/hooks/use-transactions";
+} from "@/modules/transactions/hooks/useTransactions";
 import { useCategories } from "@/modules/transactions/hooks/use-categories";
 import { TransactionList } from "@/modules/transactions/components/transaction-list";
 import { TransactionForm } from "@/modules/transactions/components/transaction-form";
 import { LogoutButton } from "@/modules/auth/components/logout-button";
-import { useSession } from "@/modules/auth/hooks/use-auth";
+import { useSession } from "@/modules/auth/hooks/useAuth";
 import type { Transaction, CreateTransactionInput } from "@/schemas/transaction";
 
 export default function TransactionsPage(): JSX.Element {
@@ -35,6 +37,9 @@ export default function TransactionsPage(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const [deletingIdForConfirm, setDeletingIdForConfirm] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const { data: categories, error: categoriesError } = useCategories();
   const {
@@ -42,7 +47,7 @@ export default function TransactionsPage(): JSX.Element {
     isLoading,
     error: transactionsError,
   } = useTransactions({
-    page: 1,
+    page: currentPage,
     limit: 50,
   });
 
@@ -99,14 +104,33 @@ export default function TransactionsPage(): JSX.Element {
     [editingTransaction, updateMutation],
   );
 
-  const handleDelete = useCallback(
-    (id: string): void => {
-      if (confirm("Are you sure you want to delete this transaction?")) {
-        deleteMutation.mutate(id);
-      }
-    },
-    [deleteMutation],
-  );
+  const handleDelete = useCallback((id: string): void => {
+    setDeletingIdForConfirm(id);
+    setShowDeleteConfirm(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback((): void => {
+    if (deletingIdForConfirm) {
+      deleteMutation.mutate(deletingIdForConfirm);
+      setShowDeleteConfirm(false);
+      setDeletingIdForConfirm(null);
+    }
+  }, [deletingIdForConfirm, deleteMutation]);
+
+  const handleCancelDelete = useCallback((): void => {
+    setShowDeleteConfirm(false);
+    setDeletingIdForConfirm(null);
+  }, []);
+
+  const handlePrevious = useCallback((): void => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  }, []);
+
+  const handleNext = useCallback((): void => {
+    if (transactionsData?.meta) {
+      setCurrentPage((prev) => Math.min(transactionsData.meta.totalPages, prev + 1));
+    }
+  }, [transactionsData?.meta]);
 
   const goToDashboard = useCallback((): void => {
     router.push("/");
@@ -189,13 +213,23 @@ export default function TransactionsPage(): JSX.Element {
 
         {transactionsData?.meta && transactionsData.meta.totalPages > 1 && (
           <div className="mt-6 flex items-center justify-center gap-2">
-            <Button variant="outline" size="sm" disabled>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevious}
+              disabled={transactionsData.meta.page <= 1}
+            >
               Previous
             </Button>
             <span className="text-sm text-muted-foreground">
               Page {transactionsData.meta.page} of {transactionsData.meta.totalPages}
             </span>
-            <Button variant="outline" size="sm" disabled>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNext}
+              disabled={transactionsData.meta.page >= transactionsData.meta.totalPages}
+            >
               Next
             </Button>
           </div>
@@ -217,6 +251,29 @@ export default function TransactionsPage(): JSX.Element {
             submitLabel={editingTransaction ? "Update Transaction" : "Create Transaction"}
             error={createMutation.error || updateMutation.error}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent onClose={handleCancelDelete}>
+          <DialogHeader>
+            <DialogTitle>Delete Transaction</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this transaction? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelDelete}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

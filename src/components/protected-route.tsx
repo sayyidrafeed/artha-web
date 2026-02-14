@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { LoadingSpinner } from "@/components/ui";
-import { useSession } from "@/modules/auth/hooks/use-auth";
+import { useSession } from "@/modules/auth/hooks/useAuth";
 import { useEffect } from "react";
 
 function getEnvVar(key: string): string | undefined {

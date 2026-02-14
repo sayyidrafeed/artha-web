@@ -2,11 +2,7 @@ function getAPIURL(): string {
   if (typeof window !== "undefined") {
     return window.location.origin + "/api";
   }
-  return (
-    (process.env.NEXT_PUBLIC_API_URL as string) ||
-    (import.meta.env as unknown as { NEXT_PUBLIC_API_URL?: string }).NEXT_PUBLIC_API_URL ||
-    "http://localhost:3000/api"
-  );
+  return (process.env.NEXT_PUBLIC_API_URL as string) || "http://localhost:3000/api";
 }
 
 const API_URL = getAPIURL();
@@ -35,6 +31,10 @@ async function handleResponse<T>(response: Response): Promise<T> {
   const data = isJson ? await response.json() : null;
 
   if (!response.ok) {
+    // Map common error statuses to user-friendly messages
+    if (response.status === 403) {
+      throw new ApiError(403, "FORBIDDEN", "Owner access only");
+    }
     if (data?.success === false && data?.error) {
       throw new ApiError(response.status, data.error.code, data.error.message, data.error.details);
     }

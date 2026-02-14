@@ -7,10 +7,7 @@ import type { User, Session } from "@/schemas/auth";
 import { useRouter } from "next/navigation";
 
 function getEnvVar(key: string): string | undefined {
-  if (typeof window === "undefined") {
-    return process.env[key];
-  }
-  return undefined;
+  return process.env[key];
 }
 
 interface SessionData {
@@ -53,7 +50,7 @@ interface UseSessionResult {
 export function useSession(): UseSessionResult {
   const DEV_BYPASS = getEnvVar("NEXT_PUBLIC_DEV_BYPASS_AUTH") === "true";
 
-  const { data, error } = useQuery<SessionData | null>({
+  const { data, error, isLoading } = useQuery<SessionData | null>({
     queryKey: queryKeys.auth.session,
     queryFn: async (): Promise<SessionData | null> => {
       if (DEV_BYPASS) {
@@ -68,7 +65,7 @@ export function useSession(): UseSessionResult {
 
   return {
     data: data ?? null,
-    isLoading: false,
+    isLoading,
     error: error ?? null,
   };
 }
@@ -116,7 +113,7 @@ export function useSignOut(): UseSignOutResult {
       await authClient.signOut();
     },
     onSuccess: () => {
-      queryClient.clear();
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
       router.push("/login");
     },
   });

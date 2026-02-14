@@ -1,6 +1,6 @@
 import { LogOut, AlertCircle } from "lucide-react";
 import { Button, Alert, AlertDescription } from "@/components/ui";
-import { useSignOut } from "../hooks/use-auth";
+import { useSignOut } from "../hooks/useAuth";
 
 export interface LogoutButtonProps {
   variant?: "default" | "ghost" | "outline";

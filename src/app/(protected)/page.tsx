@@ -4,7 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Calendar, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button, Card, Alert, AlertDescription } from "@/components/ui";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   useDashboardSummary,
   useDashboardByCategory,
@@ -12,7 +12,7 @@ import {
 import { SummaryCards } from "@/modules/dashboard/components/summary-cards";
 import { CategoryBreakdown } from "@/modules/dashboard/components/category-breakdown";
 import { LogoutButton } from "@/modules/auth/components/logout-button";
-import { useSession } from "@/modules/auth/hooks/use-auth";
+import { useSession } from "@/modules/auth/hooks/useAuth";
 
 const MONTHS = [
   "January",

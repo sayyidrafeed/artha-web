@@ -17,7 +17,7 @@ export function useDashboardSummary(year: number, month?: number): UseDashboardS
       if (month !== undefined) {
         params.month = month;
       }
-      return api.get<MonthlySummary>("/dashboard/summary", { params });
+      return api.get<MonthlySummary>("/dashboard/summary", params);
     },
     staleTime: 60 * 1000,
   });
@@ -43,7 +43,7 @@ export function useDashboardByCategory(year: number, month?: number): UseDashboa
       if (month !== undefined) {
         params.month = month;
       }
-      return api.get<DashboardByCategory>("/dashboard/by-category", { params });
+      return api.get<DashboardByCategory>("/dashboard/by-category", params);
     },
     staleTime: 60 * 1000,
   });

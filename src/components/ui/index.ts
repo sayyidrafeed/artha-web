@@ -10,7 +10,7 @@ export {
   DialogHeader,
   DialogTitle,
 } from "./dialog";
-export { Input } from "./input";
+export { Input } from "./Input";
 export { Label } from "./label";
 export { LoadingSpinner } from "./loading-spinner";
 export { Select, SelectOption } from "./select";

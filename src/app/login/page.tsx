@@ -3,7 +3,7 @@
 import { Wallet } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import { LoginButton } from "@/modules/auth/components/login-button";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LoginPage(): JSX.Element {
   return (

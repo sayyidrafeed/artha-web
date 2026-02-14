@@ -2,16 +2,8 @@ import { ArrowUp, ArrowDown, Trash2, Edit, Loader2 } from "lucide-react";
 import { Card, CardContent, Badge, Button } from "@/components/ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/currency";
+import { formatDate } from "@/lib/utils";
 import type { Transaction } from "@/schemas/transaction";
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 export interface TransactionListProps {
   transactions?: Transaction[];
