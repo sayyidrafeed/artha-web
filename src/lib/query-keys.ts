@@ -10,16 +10,12 @@ export const queryKeys = {
       [...queryKeys.transactions.all, "detail", id] as const,
   },
   dashboard: {
+    all: ["dashboard"] as const,
     summary: (year: number, month?: number): readonly string[] =>
-      [
-        "dashboard",
-        "summary",
-        String(year),
-        month ? String(month) : "all",
-      ] as const,
+      [...queryKeys.dashboard.all, "summary", String(year), month ? String(month) : "all"] as const,
     byCategory: (year: number, month?: number): readonly string[] =>
       [
-        "dashboard",
+        ...queryKeys.dashboard.all,
         "byCategory",
         String(year),
         month ? String(month) : "all",
@@ -27,7 +23,6 @@ export const queryKeys = {
   },
   categories: {
     all: ["categories"] as const,
-    list: (): readonly string[] =>
-      [...queryKeys.categories.all, "list"] as const,
+    list: (): readonly string[] => [...queryKeys.categories.all, "list"] as const,
   },
-}
+};

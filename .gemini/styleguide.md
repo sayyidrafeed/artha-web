@@ -2,7 +2,7 @@
 
 ## Overview
 
-This style guide covers React and TypeScript coding standards specific to the Artha frontend built with React 19, Vite, Tailwind CSS, and TanStack Query.
+This style guide covers React and TypeScript coding standards specific to the Artha frontend built with React 19, Next.js 16, Tailwind CSS 4, and TanStack Query.
 
 ## Table of Contents
 
@@ -25,34 +25,39 @@ This style guide covers React and TypeScript coding standards specific to the Ar
 
 ```
 frontend/src/
-├── main.tsx              # Application entry point
-├── App.tsx               # Root component
-├── index.css             # Global styles
-├── components/           # React components
-│   ├── ui/              # Reusable UI components
+├── app/                     # Next.js App Router
+│   ├── layout.tsx          # Root layout
+│   ├── page.tsx            # Home page
+│   ├── (protected)/        # Protected route group
+│   │   ├── layout.tsx      # Protected layout
+│   │   ├── page.tsx        # Dashboard
+│   │   └── transactions/
+│   │       └── page.tsx    # Transactions page
+│   └── login/
+│       └── page.tsx        # Login page
+├── components/              # React components
+│   ├── ui/                # Reusable UI components
 │   │   ├── Button.tsx
 │   │   ├── Card.tsx
 │   │   ├── Input.tsx
 │   │   └── ...
-│   ├── forms/           # Form-specific components
-│   ├── layout/          # Layout components
-│   └── features/        # Feature-specific components
-├── lib/                  # Utility functions
-│   ├── api.ts           # API client
-│   ├── query-client.ts  # TanStack Query config
-│   ├── query-keys.ts    # Query key definitions
-│   ├── auth-client.ts   # Auth client
-│   └── utils.ts         # General utilities
-├── hooks/                # Custom React hooks
-│   ├── useAuth.ts
-│   ├── useTransactions.ts
-│   └── ...
-├── schemas/              # Zod validation schemas
+│   └── providers.tsx      # React context providers
+├── modules/                # Feature modules
+│   ├── auth/              # Authentication
+│   ├── dashboard/         # Dashboard feature
+│   └── transactions/      # Transactions feature
+├── lib/                    # Utility functions
+│   ├── api.ts             # API client
+│   ├── auth-client.ts     # Better Auth client
+│   ├── query-client.ts    # TanStack Query config
+│   ├── query-keys.ts      # Query key definitions
+│   ├── currency.ts        # Currency utilities
+│   └── utils.ts           # General utilities
+├── schemas/                # Zod validation schemas
 │   ├── auth.ts
 │   ├── transaction.ts
 │   └── ...
-└── types/                # TypeScript types
-    └── index.ts
+└── types/                  # TypeScript types (next-env.d.ts)
 ```
 
 ### File Naming Conventions
@@ -65,14 +70,35 @@ frontend/src/
 
 ---
 
+## Environment Variables
+
+### Required Variables
+
+```bash
+NEXT_PUBLIC_API_URL=https://artha.sayyidrafee.com/api
+NEXT_PUBLIC_BETTER_AUTH_URL=https://artha.sayyidrafee.com/api
+NEXT_PUBLIC_OWNER_EMAIL=owner@sayyidrafee.com
+NEXT_PUBLIC_DEV_BYPASS_AUTH=false
+```
+
+### Access Pattern
+
+```typescript
+// In client components (Next.js)
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// In server components (optional)
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+```
+
+---
+
 ## React Patterns
 
 ### Component Declaration
 
 ```typescript
 // ✅ Good - Function component with explicit return type
-import type { FC } from 'react';
-
 interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
@@ -80,12 +106,12 @@ interface ButtonProps {
   disabled?: boolean;
 }
 
-export const Button: FC<ButtonProps> = ({
+export function Button({
   children,
   onClick,
   variant = 'primary',
   disabled = false,
-}) => {
+}: ButtonProps): JSX.Element {
   return (
     <button
       onClick={onClick}
@@ -100,7 +126,7 @@ export const Button: FC<ButtonProps> = ({
       {children}
     </button>
   );
-};
+}
 ```
 
 ### Props Interface Naming
@@ -152,12 +178,12 @@ function TransactionList({ transactions, isLoading }: TransactionListProps): JSX
   if (isLoading) {
     return <LoadingSpinner />;
   }
-  
+
   // Early return for empty state
   if (transactions.length === 0) {
     return <EmptyState message="No transactions yet" />;
   }
-  
+
   // Main render
   return (
     <ul>
@@ -188,12 +214,12 @@ function UserBadge({ user, showEmail }: UserBadgeProps): JSX.Element {
 
 ```typescript
 // ✅ Good - Separate type imports
-import type { User, Transaction } from '@/types';
-import type { UseQueryResult } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
+import type { User, Transaction } from "@/types";
+import type { UseQueryResult } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 // ❌ Bad - Mixed imports
-import { User, useQuery } from '@/imports'; // Don't mix types and values
+import { User, useQuery } from "@/imports"; // Don't mix types and values
 ```
 
 ### Generic Components
@@ -231,11 +257,11 @@ export function List<T extends { id: string }>({
 
 ```typescript
 // ✅ Good - Typed event handlers
-import type { 
-  FormEvent, 
-  ChangeEvent, 
+import type {
+  FormEvent,
+  ChangeEvent,
   MouseEvent,
-  KeyboardEvent 
+  KeyboardEvent
 } from 'react';
 
 function Form(): JSX.Element {
@@ -243,21 +269,21 @@ function Form(): JSX.Element {
     e.preventDefault();
     // Handle submit
   };
-  
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setValue(e.target.value);
   };
-  
+
   const handleClick = (e: MouseEvent<HTMLButtonElement>): void => {
     console.log('Clicked:', e.currentTarget);
   };
-  
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter') {
       submitForm();
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit}>
       <input onChange={handleChange} onKeyDown={handleKeyDown} />
@@ -311,17 +337,17 @@ export function TransactionListContainer(): JSX.Element {
   const { data: transactions, isLoading } = useTransactions();
   const deleteMutation = useDeleteTransaction();
   const navigate = useNavigate();
-  
+
   const handleEdit = useCallback((id: string) => {
     navigate(`/transactions/${id}/edit`);
   }, [navigate]);
-  
+
   const handleDelete = useCallback(async (id: string) => {
     await deleteMutation.mutateAsync(id);
   }, [deleteMutation]);
-  
+
   if (isLoading) return <LoadingSpinner />;
-  
+
   return (
     <TransactionList
       transactions={transactions || []}
@@ -360,7 +386,7 @@ interface TabsProps {
 
 export function Tabs({ children, defaultTab }: TabsProps): JSX.Element {
   const [activeTab, setActiveTab] = useState(defaultTab);
-  
+
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab }}>
       <div>{children}</div>
@@ -380,7 +406,7 @@ interface TabProps {
 export function Tab({ value, children }: TabProps): JSX.Element {
   const { activeTab, setActiveTab } = useTabs();
   const isActive = activeTab === value;
-  
+
   return (
     <button
       onClick={() => setActiveTab(value)}
@@ -401,9 +427,9 @@ interface TabPanelProps {
 
 export function TabPanel({ value, children }: TabPanelProps): JSX.Element {
   const { activeTab } = useTabs();
-  
+
   if (activeTab !== value) return null;
-  
+
   return <div className="p-4">{children}</div>;
 }
 
@@ -441,7 +467,7 @@ export function DataFetcher<T>({
     queryKey,
     queryFn,
   });
-  
+
   return <>{children(data as T, isLoading, error)}</>;
 }
 
@@ -466,8 +492,8 @@ export function DataFetcher<T>({
 
 ```typescript
 // ✅ Good - Custom hook structure
-import { useState, useEffect, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface UseTransactionsOptions {
   filters?: TransactionFilters;
@@ -482,11 +508,9 @@ interface UseTransactionsReturn {
   refetch: () => void;
 }
 
-export function useTransactions(
-  options: UseTransactionsOptions = {}
-): UseTransactionsReturn {
+export function useTransactions(options: UseTransactionsOptions = {}): UseTransactionsReturn {
   const { filters = {}, enabled = true } = options;
-  
+
   const {
     data: transactions,
     isLoading,
@@ -498,7 +522,7 @@ export function useTransactions(
     queryFn: () => fetchTransactions(filters),
     enabled,
   });
-  
+
   return {
     transactions,
     isLoading,
@@ -513,7 +537,7 @@ export function useTransactions(
 
 ```typescript
 // ✅ Good - Async operation hook
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 interface UseAsyncState<T> {
   data: T | null;
@@ -527,18 +551,18 @@ interface UseAsyncReturn<T> extends UseAsyncState<T> {
 }
 
 export function useAsync<T, Args extends unknown[]>(
-  fn: (...args: Args) => Promise<T>
+  fn: (...args: Args) => Promise<T>,
 ): UseAsyncReturn<T> {
   const [state, setState] = useState<UseAsyncState<T>>({
     data: null,
     isLoading: false,
     error: null,
   });
-  
+
   const execute = useCallback(
     async (...args: Args): Promise<T> => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
-      
+
       try {
         const data = await fn(...args);
         setState({ data, isLoading: false, error: null });
@@ -549,13 +573,13 @@ export function useAsync<T, Args extends unknown[]>(
         throw err;
       }
     },
-    [fn]
+    [fn],
   );
-  
+
   const reset = useCallback(() => {
     setState({ data: null, isLoading: false, error: null });
   }, []);
-  
+
   return {
     ...state,
     execute,
@@ -575,17 +599,17 @@ import { useState, useEffect } from 'react';
 
 export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
-    
+
     return () => {
       clearTimeout(timer);
     };
   }, [value, delay]);
-  
+
   return debouncedValue;
 }
 
@@ -593,13 +617,13 @@ export function useDebounce<T>(value: T, delay: number): T {
 function SearchInput(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
-  
+
   const { data } = useQuery({
     queryKey: ['search', debouncedSearch],
     queryFn: () => searchApi(debouncedSearch),
     enabled: debouncedSearch.length > 0,
   });
-  
+
   return (
     <input
       value={searchTerm}
@@ -621,29 +645,27 @@ function SearchInput(): JSX.Element {
 // lib/query-keys.ts
 export const queryKeys = {
   auth: {
-    session: ['auth', 'session'] as const,
-    user: ['auth', 'user'] as const,
+    session: ["auth", "session"] as const,
+    user: ["auth", "user"] as const,
   },
   users: {
-    all: ['users'] as const,
-    byId: (id: string) => ['users', id] as const,
-    profile: (id: string) => ['users', id, 'profile'] as const,
+    all: ["users"] as const,
+    byId: (id: string) => ["users", id] as const,
+    profile: (id: string) => ["users", id, "profile"] as const,
   },
   transactions: {
-    all: ['transactions'] as const,
-    byId: (id: string) => ['transactions', id] as const,
-    list: (filters: TransactionFilters) => 
-      ['transactions', 'list', filters] as const,
-    summary: (period: DateRange) => 
-      ['transactions', 'summary', period] as const,
+    all: ["transactions"] as const,
+    byId: (id: string) => ["transactions", id] as const,
+    list: (filters: TransactionFilters) => ["transactions", "list", filters] as const,
+    summary: (period: DateRange) => ["transactions", "summary", period] as const,
   },
   categories: {
-    all: ['categories'] as const,
-    byId: (id: string) => ['categories', id] as const,
+    all: ["categories"] as const,
+    byId: (id: string) => ["categories", id] as const,
   },
   dashboard: {
-    stats: ['dashboard', 'stats'] as const,
-    chart: (period: string) => ['dashboard', 'chart', period] as const,
+    stats: ["dashboard", "stats"] as const,
+    chart: (period: string) => ["dashboard", "chart", period] as const,
   },
 } as const;
 ```
@@ -654,7 +676,7 @@ export const queryKeys = {
 // ✅ Good - Optimistic update pattern
 export function useCreateTransaction() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: createTransactionApi,
     onMutate: async (newTransaction) => {
@@ -662,27 +684,24 @@ export function useCreateTransaction() {
       await queryClient.cancelQueries({
         queryKey: queryKeys.transactions.all,
       });
-      
+
       // Snapshot previous value
       const previousTransactions = queryClient.getQueryData<Transaction[]>(
-        queryKeys.transactions.all
-      );
-      
-      // Optimistically update
-      queryClient.setQueryData<Transaction[]>(
         queryKeys.transactions.all,
-        (old) => [newTransaction, ...(old || [])]
       );
-      
+
+      // Optimistically update
+      queryClient.setQueryData<Transaction[]>(queryKeys.transactions.all, (old) => [
+        newTransaction,
+        ...(old || []),
+      ]);
+
       // Return context for rollback
       return { previousTransactions };
     },
     onError: (err, newTransaction, context) => {
       // Rollback on error
-      queryClient.setQueryData(
-        queryKeys.transactions.all,
-        context?.previousTransactions
-      );
+      queryClient.setQueryData(queryKeys.transactions.all, context?.previousTransactions);
     },
     onSettled: () => {
       // Refetch after error or success
@@ -720,9 +739,9 @@ function TransactionList(): JSX.Element {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteTransactions({ limit: 20 });
-  
+
   const transactions = data?.pages.flat() || [];
-  
+
   return (
     <>
       <ul>
@@ -788,9 +807,9 @@ export function TransactionForm({
       ...initialData,
     },
   });
-  
+
   const type = watch('type');
-  
+
   const handleFormSubmit = async (data: TransactionFormData): Promise<void> => {
     try {
       await onSubmit(data);
@@ -799,7 +818,7 @@ export function TransactionForm({
       // Error handled by parent
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div>
@@ -818,7 +837,7 @@ export function TransactionForm({
           <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
         )}
       </div>
-      
+
       <div>
         <label htmlFor="amount" className="block text-sm font-medium">
           Amount
@@ -834,7 +853,7 @@ export function TransactionForm({
           <p className="mt-1 text-sm text-red-600">{errors.amount.message}</p>
         )}
       </div>
-      
+
       <div>
         <label htmlFor="description" className="block text-sm font-medium">
           Description
@@ -851,7 +870,7 @@ export function TransactionForm({
           </p>
         )}
       </div>
-      
+
       <button
         type="submit"
         disabled={isSubmitting || !isDirty}
@@ -880,7 +899,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
   ({ label, error, className, ...props }, ref) => {
     const id = useId();
     const errorId = `${id}-error`;
-    
+
     return (
       <div className="space-y-1">
         <label
@@ -979,14 +998,14 @@ function DashboardLayout({ children }: { children: React.ReactNode }): JSX.Eleme
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <Sidebar />
       </aside>
-      
+
       {/* Main content */}
       <main className="lg:pl-64">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {children}
         </div>
       </main>
-      
+
       {/* Mobile navigation */}
       <MobileNav className="lg:hidden" />
     </div>
@@ -1028,14 +1047,14 @@ function Dashboard({ transactions }: DashboardProps): JSX.Element {
       { income: 0, expense: 0 }
     );
   }, [transactions]);
-  
+
   return <StatsDisplay stats={stats} />;
 }
 
 // Memoize callbacks
 function TransactionList({ onDelete }: TransactionListProps): JSX.Element {
   const deleteMutation = useDeleteTransaction();
-  
+
   const handleDelete = useCallback(
     async (id: string) => {
       await deleteMutation.mutateAsync(id);
@@ -1043,7 +1062,7 @@ function TransactionList({ onDelete }: TransactionListProps): JSX.Element {
     },
     [deleteMutation, onDelete]
   );
-  
+
   return (
     <ul>
       {transactions.map((t) => (
@@ -1069,20 +1088,20 @@ export const ExpensiveComponent = memo(function ExpensiveComponent({
 ### Code Splitting
 
 ```typescript
-// ✅ Good - Lazy loading
-import { lazy, Suspense } from 'react';
+// ✅ Good - Next.js dynamic imports
+import dynamic from 'next/dynamic';
 
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const DashboardPage = dynamic(() => import('./pages/DashboardPage'));
+const SettingsPage = dynamic(() => import('./pages/SettingsPage'), {
+  loading: () => <PageLoader />,
+});
 
 function App(): JSX.Element {
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-      </Routes>
-    </Suspense>
+    <Routes>
+      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
+    </Routes>
   );
 }
 ```
@@ -1097,6 +1116,7 @@ function App(): JSX.Element {
 // ✅ Good - Component tests
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Button } from './Button';
 
 describe('Button', () => {
@@ -1104,24 +1124,24 @@ describe('Button', () => {
     render(<Button>Click me</Button>);
     expect(screen.getByText('Click me')).toBeInTheDocument();
   });
-  
+
   it('calls onClick when clicked', () => {
     const handleClick = vi.fn();
     render(<Button onClick={handleClick}>Click me</Button>);
-    
+
     fireEvent.click(screen.getByText('Click me'));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
-  
+
   it('is disabled when disabled prop is true', () => {
     render(<Button disabled>Click me</Button>);
     expect(screen.getByText('Click me')).toBeDisabled();
   });
-  
+
   it('applies variant styles correctly', () => {
     const { rerender } = render(<Button variant="primary">Button</Button>);
     expect(screen.getByText('Button')).toHaveClass('bg-blue-600');
-    
+
     rerender(<Button variant="secondary">Button</Button>);
     expect(screen.getByText('Button')).toHaveClass('bg-gray-200');
   });
@@ -1151,19 +1171,19 @@ describe('useTransactions', () => {
     const { result } = renderHook(() => useTransactions(), {
       wrapper: createWrapper(),
     });
-    
+
     expect(result.current.isLoading).toBe(true);
   });
-  
+
   it('returns transactions on success', async () => {
     const { result } = renderHook(() => useTransactions(), {
       wrapper: createWrapper(),
     });
-    
+
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
-    
+
     expect(result.current.transactions).toBeDefined();
   });
 });
@@ -1181,10 +1201,10 @@ import { App } from './App';
 describe('Transaction Creation Flow', () => {
   it('allows user to create a transaction', async () => {
     render(<App />);
-    
+
     // Navigate to create page
     await userEvent.click(screen.getByText('New Transaction'));
-    
+
     // Fill form
     await userEvent.type(screen.getByLabelText('Amount'), '100.50');
     await userEvent.type(screen.getByLabelText('Description'), 'Groceries');
@@ -1192,10 +1212,10 @@ describe('Transaction Creation Flow', () => {
       screen.getByLabelText('Category'),
       'Food'
     );
-    
+
     // Submit
     await userEvent.click(screen.getByText('Save'));
-    
+
     // Verify success
     await waitFor(() => {
       expect(screen.getByText('Transaction created')).toBeInTheDocument();

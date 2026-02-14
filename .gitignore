@@ -3,6 +3,10 @@ node_modules/
 
 # Build output
 dist/
+.next/
+
+# TypeScript cache
+*.tsbuildinfo
 
 # Environment files
 .env
@@ -36,3 +40,6 @@ bun.lockb
 # Temporary files
 tmp/
 temp/
+
+# Next.js
+next-env.d.ts

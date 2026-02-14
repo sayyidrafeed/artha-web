@@ -6,7 +6,7 @@
   "plugins": ["@typescript-eslint", "react", "react-hooks"],
   "settings": {
     "react": {
-      "version": "detect"
+      "version": "19.2.4"
     }
   },
   "rules": {
@@ -24,10 +24,7 @@
     "@typescript-eslint/await-thenable": "error",
     "@typescript-eslint/prefer-nullish-coalescing": "error",
     "@typescript-eslint/prefer-optional-chain": "error",
-    "@typescript-eslint/consistent-type-imports": [
-      "error",
-      { "prefer": "type-imports" }
-    ],
+    "@typescript-eslint/consistent-type-imports": ["error", { "prefer": "type-imports" }],
     "react/prop-types": "off",
     "react/react-in-jsx-scope": "off",
     "react-hooks/rules-of-hooks": "error",
@@ -37,10 +34,5 @@
     "prefer-const": "error",
     "no-var": "error"
   },
-  "ignorePatterns": [
-    "dist/",
-    "node_modules/",
-    "*.config.ts",
-    "*.config.js"
-  ]
+  "ignorePatterns": ["dist/", "node_modules/", "*.config.ts", "*.config.js"]
 }

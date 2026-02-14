@@ -1,24 +1,21 @@
-import { TrendingUp, TrendingDown, Wallet } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui"
-import { Skeleton } from "@/components/ui/skeleton"
-import { formatCurrency } from "@/lib/currency"
-import type { MonthlySummary } from "@/schemas/dashboard"
+import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/currency";
+import type { MonthlySummary } from "@/schemas/dashboard";
 
 export interface SummaryCardsProps {
-  data?: MonthlySummary
-  isLoading?: boolean
+  data?: MonthlySummary;
+  isLoading?: boolean;
 }
 
-export function SummaryCards({
-  data,
-  isLoading,
-}: SummaryCardsProps): JSX.Element {
+export function SummaryCards({ data, isLoading }: SummaryCardsProps): JSX.Element {
   if (isLoading) {
-    return <SummaryCardsSkeleton />
+    return <SummaryCardsSkeleton />;
   }
 
   if (!data) {
-    return <div className="text-muted-foreground">No data available</div>
+    return <div className="text-muted-foreground">No data available</div>;
   }
 
   return (
@@ -27,27 +24,22 @@ export function SummaryCards({
       <ExpenseCard amount={data.expenseCents} />
       <BalanceCard amount={data.balanceCents} />
     </div>
-  )
+  );
 }
 
 export interface SummaryCardProps {
-  title: string
-  amount: number
-  icon: React.ReactNode
-  variant: "income" | "expense" | "balance"
+  title: string;
+  amount: number;
+  icon: React.ReactNode;
+  variant: "income" | "expense" | "balance";
 }
 
-function SummaryCard({
-  title,
-  amount,
-  icon,
-  variant,
-}: SummaryCardProps): JSX.Element {
+function SummaryCard({ title, amount, icon, variant }: SummaryCardProps): JSX.Element {
   const variantStyles = {
     income: "text-green-600 dark:text-green-400",
     expense: "text-red-600 dark:text-red-400",
     balance: "text-blue-600 dark:text-blue-400",
-  }
+  };
 
   return (
     <Card>
@@ -61,11 +53,11 @@ function SummaryCard({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export interface IncomeCardProps {
-  amount: number
+  amount: number;
 }
 
 export function IncomeCard({ amount }: IncomeCardProps): JSX.Element {
@@ -76,11 +68,11 @@ export function IncomeCard({ amount }: IncomeCardProps): JSX.Element {
       icon={<TrendingUp className="h-4 w-4" />}
       variant="income"
     />
-  )
+  );
 }
 
 export interface ExpenseCardProps {
-  amount: number
+  amount: number;
 }
 
 export function ExpenseCard({ amount }: ExpenseCardProps): JSX.Element {
@@ -91,15 +83,15 @@ export function ExpenseCard({ amount }: ExpenseCardProps): JSX.Element {
       icon={<TrendingDown className="h-4 w-4" />}
       variant="expense"
     />
-  )
+  );
 }
 
 export interface BalanceCardProps {
-  amount: number
+  amount: number;
 }
 
 export function BalanceCard({ amount }: BalanceCardProps): JSX.Element {
-  const isPositive = amount >= 0
+  const isPositive = amount >= 0;
   return (
     <SummaryCard
       title="Net Balance"
@@ -107,7 +99,7 @@ export function BalanceCard({ amount }: BalanceCardProps): JSX.Element {
       icon={<Wallet className="h-4 w-4" />}
       variant={isPositive ? "income" : "expense"}
     />
-  )
+  );
 }
 
 export function SummaryCardsSkeleton(): JSX.Element {
@@ -125,5 +117,5 @@ export function SummaryCardsSkeleton(): JSX.Element {
         </Card>
       ))}
     </div>
-  )
+  );
 }

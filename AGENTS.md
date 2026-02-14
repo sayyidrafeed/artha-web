@@ -1,5 +1,5 @@
 > ⚠️ **MANDATORY DIRECTIVE FOR AI ASSISTANTS**
-> 
+>
 > **ALWAYS CHECK Context7 MCP server to get the latest documentation for libraries** before implementing any code changes. This includes but is not limited to: React, Better Auth, TanStack Query, Zod, React Hook Form, and any other dependencies.
 
 ---
@@ -15,12 +15,14 @@
 ## Critical Constraints
 
 ### Owner-Only Access (NON-NEGOTIABLE)
+
 - **NO REGISTRATION UI**: No registration page or form
 - **OAuth Only**: Login page only has GitHub/Google buttons
 - **Owner Verification**: Frontend should handle 403 errors gracefully
 - **Single User**: No user management, roles, or multi-tenancy UI
 
 ### Security Requirements
+
 - All API calls MUST include `withCredentials: true`
 - All forms MUST use Zod validation
 - Sensitive data MUST NOT be logged to console
@@ -30,14 +32,18 @@
 ## Code Style Enforcement
 
 ### oxlint Rules (MANDATORY)
+
 All code MUST pass oxlint with strict TypeScript and React rules:
 
 ```json
 {
-  "@typescript-eslint/explicit-function-return-type": ["error", {
-    "allowExpressions": true,
-    "allowTypedFunctionExpressions": true
-  }],
+  "@typescript-eslint/explicit-function-return-type": [
+    "error",
+    {
+      "allowExpressions": true,
+      "allowTypedFunctionExpressions": true
+    }
+  ],
   "@typescript-eslint/no-explicit-any": "error",
   "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
   "@typescript-eslint/strict-boolean-expressions": "error",
@@ -58,12 +64,14 @@ All code MUST pass oxlint with strict TypeScript and React rules:
 ```
 
 **Before committing, run:**
+
 ```bash
 bun run lint
 bun run lint:fix
 ```
 
 ### oxfmt Formatting (MANDATORY)
+
 All code MUST be formatted with oxfmt:
 
 ```json
@@ -82,6 +90,7 @@ All code MUST be formatted with oxfmt:
 ```
 
 **Before committing, run:**
+
 ```bash
 bun run format
 ```
@@ -136,13 +145,16 @@ artha-web/
 ## Module Boundaries
 
 ### Auth Module (`src/modules/auth/`)
+
 **Responsibilities:**
+
 - OAuth sign-in buttons
 - Authentication hooks
 - Protected route wrapper
 - Login page
 
 **Exports:**
+
 - `LoginButton` - OAuth provider buttons
 - `useSession` - Get current session
 - `useSignIn` - Initiate OAuth sign-in
@@ -150,28 +162,35 @@ artha-web/
 - `ProtectedRoute` - Route guard
 
 **MUST NOT:**
+
 - Handle business logic
 - Call application API endpoints directly
 - Store sensitive data in localStorage
 
 ### Dashboard Module (`src/modules/dashboard/`)
+
 **Responsibilities:**
+
 - Summary cards (income, expense, balance)
 - Category breakdown charts
 - Date filtering
 
 **Files:**
+
 - `components/summary-cards.tsx`
 - `components/category-breakdown.tsx`
 - `pages/dashboard.tsx`
 
 ### Transactions Module (`src/modules/transactions/`)
+
 **Responsibilities:**
+
 - Transaction list with pagination
 - Transaction form (add/edit)
 - Transaction filters
 
 **Files:**
+
 - `components/transaction-list.tsx`
 - `components/transaction-form.tsx`
 - `pages/transactions.tsx`
@@ -179,6 +198,7 @@ artha-web/
 ## Component Architecture
 
 ### Functional Components (MANDATORY)
+
 All components MUST be functional components with explicit return types:
 
 ```typescript
@@ -194,27 +214,29 @@ export function Button({ children, onClick }: ButtonProps) {
 ```
 
 ### Props Interfaces
+
 All components MUST have typed props:
 
 ```typescript
 interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
-  variant?: 'primary' | 'secondary';
+  variant?: "primary" | "secondary";
   disabled?: boolean;
 }
 
-export function Button({ 
-  children, 
-  onClick, 
-  variant = 'primary',
-  disabled = false 
+export function Button({
+  children,
+  onClick,
+  variant = "primary",
+  disabled = false,
 }: ButtonProps): JSX.Element {
   // Implementation
 }
 ```
 
 ### Custom Hooks Pattern
+
 All hooks MUST have explicit return types:
 
 ```typescript
@@ -232,41 +254,44 @@ export function useTransactions(filters: TransactionFilter): UseTransactionsResu
 ## Import Patterns
 
 ### Absolute Imports (MANDATORY)
+
 Use `@/` alias for all internal imports:
 
 ```typescript
 // CORRECT
-import { Button } from '@/components/ui/button';
-import { useSession } from '@/modules/auth/hooks/use-auth';
-import { api } from '@/lib/api';
-import type { Transaction } from '@/schemas/transaction';
+import { Button } from "@/components/ui/button";
+import { useSession } from "@/modules/auth/hooks/use-auth";
+import { api } from "@/lib/api";
+import type { Transaction } from "@/schemas/transaction";
 
 // INCORRECT
-import { Button } from '../components/ui/button';
-import { useSession } from '../modules/auth/hooks/use-auth';
+import { Button } from "../components/ui/button";
+import { useSession } from "../modules/auth/hooks/use-auth";
 ```
 
 ### Type Imports (MANDATORY)
+
 Use `type` keyword for type-only imports:
 
 ```typescript
 // CORRECT
-import type { Transaction } from '@/schemas/transaction';
-import type { ReactNode } from 'react';
+import type { Transaction } from "@/schemas/transaction";
+import type { ReactNode } from "react";
 
 // INCORRECT
-import { Transaction } from '@/schemas/transaction'; // if only using as type
+import { Transaction } from "@/schemas/transaction"; // if only using as type
 ```
 
 ### External vs Internal
+
 ```typescript
 // External imports first
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 // Internal imports second
-import { api } from '@/lib/api';
-import { Button } from '@/components/ui/button';
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 ```
 
 ## State Management Patterns
@@ -274,10 +299,11 @@ import { Button } from '@/components/ui/button';
 ### TanStack Query
 
 #### Query Keys
+
 Use the query key factory:
 
 ```typescript
-import { queryKeys } from '@/lib/query-keys';
+import { queryKeys } from "@/lib/query-keys";
 
 // CORRECT
 const { data } = useQuery({
@@ -287,12 +313,13 @@ const { data } = useQuery({
 
 // INCORRECT - Hardcoded keys
 const { data } = useQuery({
-  queryKey: ['transactions', filters],
+  queryKey: ["transactions", filters],
   queryFn: () => fetchTransactions(filters),
 });
 ```
 
 #### Mutations
+
 Always invalidate related queries:
 
 ```typescript
@@ -302,17 +329,18 @@ const mutation = useMutation({
   mutationFn: createTransaction,
   onSuccess: () => {
     // Invalidate and refetch
-    queryClient.invalidateQueries({ 
-      queryKey: queryKeys.transactions.all 
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.transactions.all,
     });
-    queryClient.invalidateQueries({ 
-      queryKey: ['dashboard'] 
+    queryClient.invalidateQueries({
+      queryKey: ["dashboard"],
     });
   },
 });
 ```
 
 ### Local State
+
 Use React hooks for local state:
 
 ```typescript
@@ -323,20 +351,22 @@ const [formData, setFormData] = useState<FormData>(initialData);
 ## API Integration Patterns
 
 ### API Client
+
 Use the configured axios instance:
 
 ```typescript
-import { api } from '@/lib/api';
+import { api } from "@/lib/api";
 
 // CORRECT
-const transactions = await api.get('/transactions', { params: filters });
+const transactions = await api.get("/transactions", { params: filters });
 
 // INCORRECT - Don't use raw axios
-import axios from 'axios';
-const transactions = await axios.get('/transactions');
+import axios from "axios";
+const transactions = await axios.get("/transactions");
 ```
 
 ### Error Handling
+
 Handle API errors consistently:
 
 ```typescript
@@ -351,6 +381,7 @@ if (error) {
 ```
 
 ### Authentication
+
 Session is handled via cookies automatically:
 
 ```typescript
@@ -362,6 +393,7 @@ const { data: session } = useSession();
 ## Form Handling
 
 ### React Hook Form + Zod
+
 All forms MUST use react-hook-form with Zod validation:
 
 ```typescript
@@ -395,10 +427,11 @@ export function TransactionForm(): JSX.Element {
 ## Currency Formatting
 
 ### Display
+
 Use the currency utilities:
 
 ```typescript
-import { formatCurrency } from '@/lib/currency';
+import { formatCurrency } from "@/lib/currency";
 
 // CORRECT
 const displayAmount = formatCurrency(2599); // "$25.99"
@@ -408,10 +441,11 @@ const displayAmount = `$${(2599 / 100).toFixed(2)}`;
 ```
 
 ### Input
+
 Convert dollars to cents for API:
 
 ```typescript
-import { dollarsToCents } from '@/lib/currency';
+import { dollarsToCents } from "@/lib/currency";
 
 const amount = dollarsToCents(25.99); // 2599
 ```
@@ -419,6 +453,7 @@ const amount = dollarsToCents(25.99); // 2599
 ## Environment Variable Management
 
 ### Required Variables
+
 ```bash
 VITE_API_URL=https://artha.sayyidrafee.com/api
 VITE_BETTER_AUTH_URL=https://artha.sayyidrafee.com/api
@@ -426,15 +461,17 @@ VITE_OWNER_EMAIL=owner@sayyidrafee.com
 ```
 
 ### Access Pattern
+
 ```typescript
 const API_URL = import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
-  throw new Error('VITE_API_URL environment variable is required');
+  throw new Error("VITE_API_URL environment variable is required");
 }
 ```
 
 ### Type Safety
+
 Add to `src/vite-env.d.ts`:
 
 ```typescript
@@ -454,6 +491,7 @@ interface ImportMeta {
 ## Deployment Constraints (Vercel)
 
 ### Build Configuration
+
 Vercel automatically uses the build script:
 
 ```json
@@ -465,14 +503,17 @@ Vercel automatically uses the build script:
 ```
 
 ### Environment Variables
+
 All `VITE_` prefixed variables MUST be set in Vercel dashboard.
 
 ### Output
+
 Build output goes to `dist/` directory.
 
 ## Routing
 
 ### Route Structure
+
 ```typescript
 // App.tsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -497,6 +538,7 @@ function App(): JSX.Element {
 ```
 
 ### Protected Routes
+
 All authenticated routes MUST use `ProtectedRoute`:
 
 ```typescript
@@ -518,12 +560,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps): JSX.Element {
 ## Testing Requirements
 
 ### Before Committing
+
 1. Run `bun run check` (typecheck + lint + format)
 2. Ensure no oxlint errors
 3. Ensure all files are formatted with oxfmt
 4. Test in browser manually
 
 ### CI/CD Checks
+
 - oxlint MUST pass
 - oxfmt check MUST pass
 - TypeScript compilation MUST pass
@@ -541,6 +585,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps): JSX.Element {
 ## Prohibited Patterns
 
 ### NEVER DO:
+
 1. Create a registration form or page
 2. Store session tokens in localStorage
 3. Use `any` type
@@ -555,6 +600,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps): JSX.Element {
 ## AI Assistant Checklist
 
 Before generating any code:
+
 - [ ] Is this for owner-only access?
 - [ ] Are all inputs validated with Zod?
 - [ ] Are explicit return types provided?

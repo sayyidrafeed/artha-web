@@ -2,31 +2,32 @@
 
 ## Overview
 
-Frontend-specific configuration for automated code reviews using Gemini Code Reviewer. This focuses on React 19, TypeScript, Tailwind CSS, and TanStack Query patterns.
+Frontend-specific configuration for automated code reviews using Gemini Code Reviewer. This focuses on React 19, Next.js 16, TypeScript, Tailwind CSS 4, and TanStack Query patterns.
 
 ## Tech Stack Context
 
-- **Framework**: React 19.2.4
-- **Build Tool**: Vite 5.x
-- **Styling**: Tailwind CSS 3.4
+- **Framework**: React 19.2.4 with Next.js 16.1.6
+- **Build Tool**: Next.js (Turbopack in development)
+- **Styling**: Tailwind CSS 4
 - **State Management**: TanStack Query 5.90.20
 - **Forms**: React Hook Form 7.50.0
 - **Validation**: Zod 4.3.6
-- **Icons**: Lucide React 0.300.0
+- **Icons**: Lucide React 0.474.0
 - **Utilities**: date-fns 3.0.0, clsx, tailwind-merge
+- **Authentication**: Better Auth 1.4.18
 
 ## Frontend-Specific Review Triggers
 
 ### File Patterns
+
 ```yaml
 include:
-  - "frontend/**/*.ts"
-  - "frontend/**/*.tsx"
-  - "shared/**/*.ts"
+  - "src/**/*.ts"
+  - "src/**/*.tsx"
 
 exclude:
-  - "frontend/node_modules/**"
-  - "frontend/dist/**"
+  - "src/node_modules/**"
+  - "src/.next/**"
   - "**/*.test.ts"
   - "**/*.test.tsx"
   - "**/*.spec.ts"
@@ -38,12 +39,12 @@ exclude:
 ### React Components (CRITICAL)
 
 #### Component Structure
+
 Components must follow a consistent structure:
 
 ```typescript
 // ✅ Good - Component structure
 import { useState, useCallback } from 'react';
-import type { FC } from 'react';
 
 // Types
 interface UserCardProps {
@@ -52,28 +53,28 @@ interface UserCardProps {
   onDelete: (userId: string) => void;
 }
 
-// Component
-export const UserCard: FC<UserCardProps> = ({ user, onEdit, onDelete }) => {
+// Component - use explicit return type JSX.Element
+export function UserCard({ user, onEdit, onDelete }: UserCardProps): JSX.Element {
   // State
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   // Handlers
   const handleEdit = useCallback(() => {
     onEdit(user);
   }, [onEdit, user]);
-  
+
   // Render
   return (
     <div className="rounded-lg border p-4">
       {/* Component JSX */}
     </div>
   );
-};
+}
 ```
 
 #### Component Types
-- Use `FC<Props>` for components with children
-- Use explicit return type `JSX.Element` for simple components
+
+- Use explicit return type `JSX.Element` for all components
 - Always export props interface
 
 ```typescript
@@ -84,14 +85,15 @@ export function Button({ children, onClick }: ButtonProps): JSX.Element {
 }
 
 // Component with children
-export const Card: FC<CardProps> = ({ children, className }) => {
+export function Card({ children, className }: CardProps): JSX.Element {
   return <div className={cn('rounded-lg border', className)}>{children}</div>;
-};
+}
 ```
 
 ### React Hooks (CRITICAL)
 
 #### Rules of Hooks
+
 All hooks must follow React's Rules of Hooks:
 
 ```typescript
@@ -100,18 +102,18 @@ function useUserData(userId: string): UseQueryResult<User> {
   // All hooks at the top
   const queryClient = useQueryClient();
   const [retryCount, setRetryCount] = useState(0);
-  
+
   const query = useQuery({
     queryKey: ['user', userId],
     queryFn: () => fetchUser(userId),
   });
-  
+
   useEffect(() => {
     if (query.isError) {
       setRetryCount((c) => c + 1);
     }
   }, [query.isError]);
-  
+
   return query;
 }
 
@@ -124,14 +126,18 @@ function BadComponent({ userId }: { userId?: string }) {
 ```
 
 #### Hook Dependencies
+
 All dependencies must be correctly specified:
 
 ```typescript
 // ✅ Good - Correct dependencies
-const handleSubmit = useCallback(async (data: FormData) => {
-  await submitForm(data);
-  onSuccess();
-}, [onSuccess]);
+const handleSubmit = useCallback(
+  async (data: FormData) => {
+    await submitForm(data);
+    onSuccess();
+  },
+  [onSuccess],
+);
 
 useEffect(() => {
   loadData();
@@ -144,24 +150,25 @@ useEffect(() => {
 ```
 
 #### Custom Hooks
+
 Custom hooks must start with `use` prefix:
 
 ```typescript
 // ✅ Good - Custom hook naming
 export function useTransactions(filters: TransactionFilters) {
   return useQuery({
-    queryKey: ['transactions', filters],
+    queryKey: ["transactions", filters],
     queryFn: () => fetchTransactions(filters),
   });
 }
 
 export function useCreateTransaction() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: createTransaction,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });
 }
@@ -170,6 +177,7 @@ export function useCreateTransaction() {
 ### TanStack Query (CRITICAL)
 
 #### Query Keys
+
 Query keys must be consistent and hierarchical:
 
 ```typescript
@@ -177,15 +185,15 @@ Query keys must be consistent and hierarchical:
 // lib/query-keys.ts
 export const queryKeys = {
   users: {
-    all: ['users'] as const,
-    byId: (id: string) => ['users', id] as const,
-    list: (filters: UserFilters) => ['users', 'list', filters] as const,
+    all: ["users"] as const,
+    byId: (id: string) => ["users", id] as const,
+    list: (filters: UserFilters) => ["users", "list", filters] as const,
   },
   transactions: {
-    all: ['transactions'] as const,
-    byId: (id: string) => ['transactions', id] as const,
-    list: (filters: TransactionFilters) => ['transactions', 'list', filters] as const,
-    summary: (period: string) => ['transactions', 'summary', period] as const,
+    all: ["transactions"] as const,
+    byId: (id: string) => ["transactions", id] as const,
+    list: (filters: TransactionFilters) => ["transactions", "list", filters] as const,
+    summary: (period: string) => ["transactions", "summary", period] as const,
   },
 } as const;
 
@@ -197,13 +205,14 @@ const { data } = useQuery({
 ```
 
 #### Mutation Patterns
+
 Mutations must handle loading and error states:
 
 ```typescript
 // ✅ Good - Mutation with proper handling
 function CreateTransactionForm(): JSX.Element {
   const createTransaction = useCreateTransaction();
-  
+
   const handleSubmit = async (data: CreateTransactionData) => {
     try {
       await createTransaction.mutateAsync(data);
@@ -213,11 +222,11 @@ function CreateTransactionForm(): JSX.Element {
       toast.error('Failed to create transaction');
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit}>
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         disabled={createTransaction.isPending}
       >
         {createTransaction.isPending ? 'Creating...' : 'Create'}
@@ -228,12 +237,13 @@ function CreateTransactionForm(): JSX.Element {
 ```
 
 #### Query Configuration
+
 Queries should have appropriate configuration:
 
 ```typescript
 // ✅ Good - Query configuration
 const { data } = useQuery({
-  queryKey: ['user', userId],
+  queryKey: ["user", userId],
   queryFn: () => fetchUser(userId),
   enabled: !!userId, // Only run when userId exists
   staleTime: 5 * 60 * 1000, // 5 minutes
@@ -246,6 +256,7 @@ const { data } = useQuery({
 ### Forms and Validation (CRITICAL)
 
 #### React Hook Form + Zod
+
 Forms must use react-hook-form with Zod validation:
 
 ```typescript
@@ -269,11 +280,11 @@ export function LoginForm(): JSX.Element {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-  
+
   const onSubmit = async (data: LoginFormData) => {
     await login(data);
   };
-  
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div>
@@ -291,6 +302,7 @@ export function LoginForm(): JSX.Element {
 ### Styling with Tailwind CSS (WARNING)
 
 #### Class Organization
+
 Tailwind classes should be organized consistently:
 
 ```typescript
@@ -323,16 +335,17 @@ function Button({ children, variant = 'primary' }: ButtonProps): JSX.Element {
 ```
 
 #### Utility Functions
+
 Use `cn()` utility for conditional classes:
 
 ```typescript
 // ✅ Good - Using cn utility
 import { cn } from '@/lib/utils';
 
-function Card({ 
-  children, 
+function Card({
+  children,
   className,
-  padding = 'normal' 
+  padding = 'normal'
 }: CardProps): JSX.Element {
   return (
     <div
@@ -351,6 +364,7 @@ function Card({
 ```
 
 #### Avoiding Class Conflicts
+
 Don't use arbitrary values when standard utilities exist:
 
 ```typescript
@@ -364,6 +378,7 @@ Don't use arbitrary values when standard utilities exist:
 ### Performance (WARNING)
 
 #### Memoization
+
 Use memoization appropriately:
 
 ```typescript
@@ -372,7 +387,7 @@ import { memo, useMemo, useCallback } from 'react';
 
 // Memoize expensive calculations
 const sortedTransactions = useMemo(() => {
-  return [...transactions].sort((a, b) => 
+  return [...transactions].sort((a, b) =>
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 }, [transactions]);
@@ -398,15 +413,16 @@ export const TransactionList = memo(function TransactionList({
 ```
 
 #### List Rendering
+
 Always use proper keys when rendering lists:
 
 ```typescript
 // ✅ Good - List keys
 <ul>
   {transactions.map((transaction) => (
-    <TransactionItem 
-      key={transaction.id} 
-      transaction={transaction} 
+    <TransactionItem
+      key={transaction.id}
+      transaction={transaction}
     />
   ))}
 </ul>
@@ -422,10 +438,11 @@ Always use proper keys when rendering lists:
 ### API Integration (WARNING)
 
 #### API Client Setup
+
 ```typescript
 // ✅ Good - API client configuration
 // lib/api.ts
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -438,21 +455,18 @@ export const queryClient = new QueryClient({
 });
 
 // API fetch wrapper
-export async function apiFetch<T>(
-  endpoint: string,
-  options?: RequestInit
-): Promise<T> {
+export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`/api${endpoint}`, {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     ...options,
   });
-  
+
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`);
   }
-  
+
   return response.json();
 }
 ```
@@ -460,6 +474,7 @@ export async function apiFetch<T>(
 ### Error Handling (WARNING)
 
 #### Error Boundaries
+
 Use error boundaries for component error handling:
 
 ```typescript
@@ -478,20 +493,20 @@ interface State {
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
-  
+
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
-  
+
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('Error caught by boundary:', error, errorInfo);
   }
-  
+
   render(): ReactNode {
     if (this.state.hasError) {
       return this.props.fallback || <ErrorFallback error={this.state.error} />;
     }
-    
+
     return this.props.children;
   }
 }
@@ -500,15 +515,16 @@ export class ErrorBoundary extends Component<Props, State> {
 ### Accessibility (WARNING)
 
 #### A11y Requirements
+
 Components must be accessible:
 
 ```typescript
 // ✅ Good - Accessible components
-function Button({ 
-  children, 
+function Button({
+  children,
   onClick,
   disabled,
-  ariaLabel 
+  ariaLabel
 }: ButtonProps): JSX.Element {
   return (
     <button
@@ -525,14 +541,14 @@ function Button({
 }
 
 // ✅ Good - Form labels
-function TextField({ 
-  label, 
+function TextField({
+  label,
   name,
-  error 
+  error
 }: TextFieldProps): JSX.Element {
   const id = useId();
   const errorId = `${id}-error`;
-  
+
   return (
     <div>
       <label htmlFor={id}>{label}</label>
@@ -564,6 +580,7 @@ When reviewing frontend code, focus on:
 ## Integration with Frontend CI/CD
 
 Gemini reviews should check:
+
 - All components have proper types
 - All hooks follow Rules of Hooks
 - All queries have proper keys and configuration

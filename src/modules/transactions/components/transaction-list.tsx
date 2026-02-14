@@ -1,24 +1,27 @@
-import { ArrowUp, ArrowDown, Trash2, Edit } from "lucide-react"
-import { Card, CardContent, Badge, Button } from "@/components/ui"
-import { Skeleton } from "@/components/ui/skeleton"
-import { formatCurrency } from "@/lib/currency"
-import type { Transaction } from "@/schemas/transaction"
+import { ArrowUp, ArrowDown, Trash2, Edit, Loader2 } from "lucide-react";
+import { Card, CardContent, Badge, Button } from "@/components/ui";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/currency";
+import { formatDate } from "@/lib/utils";
+import type { Transaction } from "@/schemas/transaction";
 
 export interface TransactionListProps {
-  transactions?: Transaction[]
-  isLoading?: boolean
-  onEdit?: (transaction: Transaction) => void
-  onDelete?: (id: string) => void
+  transactions?: Transaction[];
+  isLoading?: boolean;
+  deletingId?: string | null;
+  onEdit?: (transaction: Transaction) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function TransactionList({
   transactions,
   isLoading,
+  deletingId,
   onEdit,
   onDelete,
 }: TransactionListProps): JSX.Element {
   if (isLoading) {
-    return <TransactionListSkeleton />
+    return <TransactionListSkeleton />;
   }
 
   if (!transactions || transactions.length === 0) {
@@ -28,7 +31,7 @@ export function TransactionList({
           <p className="text-muted-foreground">No transactions found</p>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -37,44 +40,38 @@ export function TransactionList({
         <TransactionCard
           key={transaction.id}
           transaction={transaction}
+          isDeleting={deletingId === transaction.id}
           onEdit={onEdit}
           onDelete={onDelete}
         />
       ))}
     </div>
-  )
+  );
 }
 
 export interface TransactionCardProps {
-  transaction: Transaction
-  onEdit?: (transaction: Transaction) => void
-  onDelete?: (id: string) => void
+  transaction: Transaction;
+  isDeleting?: boolean;
+  onEdit?: (transaction: Transaction) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function TransactionCard({
   transaction,
+  isDeleting = false,
   onEdit,
   onDelete,
 }: TransactionCardProps): JSX.Element {
-  const isIncome = transaction.categoryType === "income"
+  const isIncome = transaction.categoryType === "income";
   const icon = isIncome ? (
     <ArrowUp className="h-4 w-4 text-green-600 dark:text-green-400" />
   ) : (
     <ArrowDown className="h-4 w-4 text-red-600 dark:text-red-400" />
-  )
+  );
 
   const amountColor = isIncome
     ? "text-green-600 dark:text-green-400"
-    : "text-red-600 dark:text-red-400"
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
-  }
+    : "text-red-600 dark:text-red-400";
 
   return (
     <Card className="transition-shadow hover:shadow-md">
@@ -120,9 +117,14 @@ export function TransactionCard({
                     variant="ghost"
                     size="icon"
                     onClick={() => onDelete(transaction.id)}
+                    disabled={isDeleting}
                     aria-label="Delete transaction"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    {isDeleting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
                   </Button>
                 )}
               </div>
@@ -131,7 +133,7 @@ export function TransactionCard({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function TransactionListSkeleton(): JSX.Element {
@@ -159,5 +161,5 @@ export function TransactionListSkeleton(): JSX.Element {
         </Card>
       ))}
     </div>
-  )
+  );
 }

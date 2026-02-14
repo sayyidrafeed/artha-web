@@ -1,42 +1,30 @@
-import * as React from "react"
-import { cn } from "@/lib/cn"
+import * as React from "react";
+import { cn } from "@/lib/cn";
 
 export interface DialogProps {
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  children: React.ReactNode
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children: React.ReactNode;
 }
 
-export interface DialogContentProps
-  extends React.HTMLAttributes<HTMLDivElement> {
-  onClose?: () => void
+export interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  onClose?: () => void;
 }
 
-export interface DialogHeaderProps
-  extends React.HTMLAttributes<HTMLDivElement> {}
-export interface DialogTitleProps
-  extends React.HTMLAttributes<HTMLHeadingElement> {}
-export interface DialogDescriptionProps
-  extends React.HTMLAttributes<HTMLParagraphElement> {}
-export interface DialogFooterProps
-  extends React.HTMLAttributes<HTMLDivElement> {}
+export interface DialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
+export interface DialogTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
+export interface DialogDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+export interface DialogFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-function Dialog({
-  open = false,
-  onOpenChange,
-  children,
-}: DialogProps): JSX.Element {
-  const [internalOpen, setInternalOpen] = React.useState(open)
+function Dialog({ open = false, onOpenChange, children }: DialogProps): JSX.Element {
+  const isControlled = onOpenChange !== undefined;
+  const [internalOpen, setInternalOpen] = React.useState(open);
 
-  const isOpen = onOpenChange !== undefined ? open : internalOpen
-  const setIsOpen = onOpenChange ?? setInternalOpen
-
-  React.useEffect(() => {
-    setInternalOpen(open)
-  }, [open])
+  const isOpen = isControlled ? open : internalOpen;
+  const setIsOpen = isControlled ? onOpenChange! : setInternalOpen;
 
   if (!isOpen) {
-    return <></>
+    return <></>;
   }
 
   return (
@@ -53,13 +41,13 @@ function Dialog({
           if (React.isValidElement(child)) {
             return React.cloneElement(child, {
               onClose: () => setIsOpen(false),
-            } as Partial<DialogContentProps>)
+            } as Partial<DialogContentProps>);
           }
-          return child
+          return child;
         })}
       </div>
     </div>
-  )
+  );
 }
 
 function DialogContent({
@@ -70,10 +58,7 @@ function DialogContent({
 }: DialogContentProps): JSX.Element {
   return (
     <div
-      className={cn(
-        "relative rounded-lg border bg-background p-6 shadow-lg",
-        className,
-      )}
+      className={cn("relative rounded-lg border bg-background p-6 shadow-lg", className)}
       {...props}
     >
       {children}
@@ -100,59 +85,35 @@ function DialogContent({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 function DialogHeader({ className, ...props }: DialogHeaderProps): JSX.Element {
   return (
     <div
-      className={cn(
-        "flex flex-col space-y-1.5 text-center sm:text-left",
-        className,
-      )}
+      className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}
       {...props}
     />
-  )
+  );
 }
 
 function DialogTitle({ className, ...props }: DialogTitleProps): JSX.Element {
   return (
-    <h2
-      className={cn(
-        "text-lg font-semibold leading-none tracking-tight",
-        className,
-      )}
-      {...props}
-    />
-  )
+    <h2 className={cn("text-lg font-semibold leading-none tracking-tight", className)} {...props} />
+  );
 }
 
-function DialogDescription({
-  className,
-  ...props
-}: DialogDescriptionProps): JSX.Element {
-  return (
-    <p className={cn("text-sm text-muted-foreground", className)} {...props} />
-  )
+function DialogDescription({ className, ...props }: DialogDescriptionProps): JSX.Element {
+  return <p className={cn("text-sm text-muted-foreground", className)} {...props} />;
 }
 
 function DialogFooter({ className, ...props }: DialogFooterProps): JSX.Element {
   return (
     <div
-      className={cn(
-        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
-        className,
-      )}
+      className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
       {...props}
     />
-  )
+  );
 }
 
-export {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-}
+export { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter };
